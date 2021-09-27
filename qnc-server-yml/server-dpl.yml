@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qnc-server
+spec:
+  replicas: 1
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: qnc-server
+  template:
+    metadata:
+      labels:
+        app: qnc-server
+    spec:
+      containers:
+      - name: qnc-server
+        image: localhost:5000/test-img
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 4000
+        env:
+        - name: DATABASE_URL
+          # value: "postgres://qvgwilqlnjeckw:c6f017ed45e33f243ea747994e5d2d5db9cf494bff562a12d74572aedea3759e@ec2-54-87-112-29.compute-1.amazonaws.com:5432/d4ojqqh97eeoam"
+          valueFrom:
+            configMapKeyRef:
+              name: qnc-server-configmap
+              key: database-url
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: qnc-server-secret
+              key: jwt-secret
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: qnc-server-secret
+              key: db-username
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: qnc-server-secret
+              key: db-password
+        - name: NODE_ENV
+          value: "development"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qnc-service
+spec:
+  selector:
+    app: qnc-server
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 4000
+      targetPort: 4000
+      nodePort: 30500
+
+ 
