@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: qnc-server
-        image: localhost:5000/test-img
+        image: localhost:5000/qnc-ielts-practice-server
         resources:
           limits:
             memory: "128Mi"
@@ -44,6 +44,16 @@ spec:
             secretKeyRef:
               name: qnc-server-secret
               key: db-password
+        - name: DATABASE_PORT
+          valueFrom:
+            secretKeyRef:
+              name: qnc-server-secret
+              key: db-port
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              name: qnc-server-secret
+              key: db-name
         - name: NODE_ENV
           value: "development"
 ---

@@ -1,0 +1,188 @@
+type Query {
+	allNamespaces: [Namespace!]
+	allPods(namespace: String!): [Pod!]
+	allDeployments(namespace: String!): [Deployment!]
+	allStatefulSets(namespace: String!): [StatefulSet!]
+	allServices(namespace: String!): [Service!]
+	allConfigMaps(namespace: String!): [ConfigMap!]
+	allSecrets(namespace: String!): [Secret!]
+}
+
+type Mutation {
+	createNamespace(name: String!): Namespace
+	createDeployment(namespace: String!): Deployment
+	createStatefulSet(namespace: String!): StatefulSet
+	createService(namespace: String!): Service
+	createConfigMap(namespace: String!): ConfigMap
+	createSecret(namespace: String!): Secret
+}
+
+type Namespace {
+	name: String!
+	deployments: [Deployment!]
+	statefulSets: [StatefulSet!]
+	pods: [Pod!]
+	configMaps: [ConfigMap!]
+	secrets: [Secret!]
+	services: [Service!]
+}
+
+type Metadata {
+	name: String!
+	uid: String!
+	namespace: Namespace!
+}
+
+type Deployment {
+	meta: Metadata!
+	replicas: Int!
+	labelSelector: Label!
+	template: PodTemplate!
+	yaml: String!
+}
+
+type StatefulSet {
+	meta: Metadata!
+	replicas: Int!
+	labelSelector: [Label!]
+	serviceName: String!
+	yaml: String!
+}
+
+type Pod {
+	meta: Metadata!
+	hostIP: String!
+	podIP: String!
+	status: String!
+}
+
+type PodTemplate {
+	meta: Metadata!
+	containers: [Container!]!
+}
+
+type Container {
+	name: String!
+	image: String!
+	resources: ResourceRequirements
+	ports: [ContainerPort!]
+	env: [EnvVar!]
+}
+
+type ContainerPort {
+	containterPort: Int!
+	name: String
+	protocol: PortProtocol 
+}
+
+enum PortProtocol {
+	UDP
+	TCP
+	SCTP
+}
+
+type EnvVar {
+	name: String!
+	value: String
+	valueFrom: EnvVarSrc
+}
+
+type EnvVarSrc {
+	configMapKeyRef: KeyRef
+	secretKeyRef: KeyRef
+}
+
+type KeyRef {
+	name: String!
+	key: String!
+}
+
+type ConfigMap {
+	meta: Metadata!
+	data: [MapValue!]
+	yaml: String!
+}
+
+type MapValue {
+	key: String!
+	value: String!
+}
+
+type Secret {
+	meta: Metadata!
+	type: String!
+	data: [MapValue!]
+	yaml: String!
+}
+
+type Service {
+	meta: Metadata!
+	type: ServiceType!
+	selector: [Label!]!
+	ports: [ServicePort!]
+	yaml: String!
+}
+
+enum ServiceType {
+	ExternalName,
+	ClusterIP,
+	NodePort,
+	LoadBalancer,
+}
+
+input ServiceInput {
+	name: String!
+	type: ServiceType!
+}
+
+type ServicePort {
+	name: String!
+	protocol: String!
+	port: String!
+	targetPort: String!
+	nodePort: String!
+}
+
+type PersistentVolume {
+	meta: Metadata!
+	accessMode: [VolumeAccessMode!]!
+	volumeMode: String!
+	capacity: String!
+	reclaimPolicy: PersistentVolumeReclaimPolicy! 
+	
+}
+
+enum PersistentVolumeReclaimPolicy {
+	Retain,
+	Delete
+}
+
+type PersistentVolumeClaim {
+	meta: Metadata!
+	volumeName: String!
+	volumeMode: String!
+	accessMode: [VolumeAccessMode!]!
+	resources: ResourceRequirements
+}
+
+enum VolumeAccessMode {
+	ReadWriteOnce,
+	ReadOnlyMany,
+	ReadWriteMany,
+	ReadWriteOncePod,
+}
+
+type ResourceRequirements {
+	limits: Resource
+	requests: Resource
+}
+
+type Resource {
+	cpu: String
+	memory: String
+}
+
+type Label {
+	name: String!
+	value: String!
+}

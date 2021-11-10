@@ -22,6 +22,9 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "500m"
+        volumeMounts:
+          - name: postgresql-data
+            mountPath: /var/lib/postgresql/data
         ports:
         - containerPort: 5432
         env:
@@ -35,6 +38,11 @@ spec:
             secretKeyRef:
               name: postgresql-secret
               key: postgres-password
+      volumes:
+      - name: postgresql-data
+        persistentVolumeClaim:
+          claimName: local-volume-claim
+
 ---
 apiVersion: v1
 kind: Service
