@@ -1,8 +1,82 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATASOURCE_URL")
+  provider = "postgresql"
+  url      = env("DATASOURCE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  role      Role     @relation(fields: [roleId], references: [id])
+  roleId    String
+  thesis    Thesis?  @relation(fields: [thesisId], references: [id])
+  thesisId  String?
+}
+
+model Role {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  User      User[]
+}
+
+model Namespace {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Thesis    Thesis[]
+  files     kubeFile[]
+}
+
+model Thesis {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  Namespace     Namespace      @relation(fields: [namespaceId], references: [id])
+  namespaceId   String         @unique
+  User          User?
+  ThesisListing ThesisListing?
+}
+
+model ThesisListing {
+  id             String      @id @default(cuid())
+  studentName    String
+  supervisorName String
+  title          String
+  summary        String?
+  report         Bytes?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  thesis         Thesis      @relation(fields: [thesisId], references: [id])
+  thesisId       String      @unique
+  tags           ThesisTag[]
+}
+
+model ThesisTag {
+  id              String         @id @default(cuid())
+  name            String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  ThesisListing   ThesisListing? @relation(fields: [thesisListingId], references: [id])
+  thesisListingId String?
+}
+
+model kubeFile {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  content     Json
+  Namespace   Namespace @relation(fields: [namespaceId], references: [id])
+  namespaceId String
 }

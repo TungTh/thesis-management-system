@@ -1,17 +1,18 @@
-import apollo from 'apollo-server-express';
+import Prisma from '@prisma/client';
+import Apollo from 'apollo-server-express';
 import express from 'express';
-// import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as Deployment from './resolvers/Deployment';
 import * as Mutation from './resolvers/Mutation';
 import * as Namespace from './resolvers/Namespace';
 import * as Pod from './resolvers/Pod';
-// const prisma = new PrismaClient();
 import * as Query from './resolvers/Query';
 import * as StatefulSet from './resolvers/StatefulSet';
 
-const { ApolloServer } = apollo;
+const { ApolloServer } = Apollo;
+const { PrismaClient } = Prisma;
+const prisma = new PrismaClient();
 
 const resolvers = {
 	Query,
@@ -31,7 +32,7 @@ const server = new ApolloServer({
 		return {
 			...req,
 			...res,
-			// prisma,
+			prisma,
 		}
 	}
 });
