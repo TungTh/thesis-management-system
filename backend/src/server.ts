@@ -1,5 +1,5 @@
 import { ApolloServer } from 'apollo-server-express';
-import * as express from 'express';
+import express from 'express';
 // import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
