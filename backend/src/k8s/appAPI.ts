@@ -1,7 +1,8 @@
-import { KubeConfig, AppsV1Api } from '@kubernetes/client-node';
+import k8s from '@kubernetes/client-node';
 import * as yaml from 'js-yaml';
 import { GQLDeployment, GQLMetadata, GQLStatefulSet } from '../schemaTypes';
 import { stripReadOnly } from './objectUtil';
+const { KubeConfig, AppsV1Api } = k8s;
 
 const kc = new KubeConfig();
 kc.loadFromDefault();

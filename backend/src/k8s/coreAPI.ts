@@ -1,8 +1,9 @@
-import { CoreV1Api, KubeConfig, V1Namespace } from "@kubernetes/client-node";
+import k8s from "@kubernetes/client-node";
 import * as yaml from "js-yaml";
 import { GQLConfigMap, GQLMapValue, GQLMetadata, GQLNamespace, GQLPersistentVolumeClaim, GQLPod, GQLSecret, GQLService, GQLServicePort, GQLVolumeAccessMode } from "../schemaTypes";
 import { stripReadOnly } from "./objectUtil";
 
+const { CoreV1Api, KubeConfig } = k8s;
 const kc = new KubeConfig();
 kc.loadFromDefault();
 
@@ -25,7 +26,7 @@ export const getNamespaces = async (): Promise<GQLNamespace[]> => {
 }
 
 export const createNamespace = async (name: string): Promise<GQLNamespace> => {
-	const namespace = <V1Namespace> {
+	const namespace = <k8s.V1Namespace> {
 		metadata: {
 			name: name
 		}

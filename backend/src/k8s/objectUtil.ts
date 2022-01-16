@@ -1,7 +1,6 @@
-import { V1ObjectMeta } from '@kubernetes/client-node'
-
+import k8s from '@kubernetes/client-node';
 interface V1Object {
-	metadata?: V1ObjectMeta,
+	metadata?: k8s.V1ObjectMeta,
 	[key: string]: any,
 	status?: any,
 }

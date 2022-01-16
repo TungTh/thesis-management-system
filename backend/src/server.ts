@@ -1,4 +1,4 @@
-import { ApolloServer } from 'apollo-server-express';
+import apollo from 'apollo-server-express';
 import express from 'express';
 // import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
@@ -11,7 +11,7 @@ import * as Pod from './resolvers/Pod';
 import * as Query from './resolvers/Query';
 import * as StatefulSet from './resolvers/StatefulSet';
 
-
+const { ApolloServer } = apollo;
 
 const resolvers = {
 	Query,
@@ -22,8 +22,10 @@ const resolvers = {
 	StatefulSet,
 }
 
+const __dirname = path.resolve();
+
 const server = new ApolloServer({
-	typeDefs: fs.readFileSync(path.join(__dirname, 'resources/schema.graphql'), 'utf-8'),
+	typeDefs: fs.readFileSync(path.join(__dirname, 'src/resources/schema.graphql'), 'utf-8'),
 	resolvers,
 	context: ({req, res}) => {
 		return {
