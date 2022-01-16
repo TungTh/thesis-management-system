@@ -186,3 +186,32 @@ type Label {
 	name: String!
 	value: String!
 }
+
+type Thesis {
+	title: String!
+	studentName: String!
+	supervisorName: String!
+	summary: String
+	report: String
+	namespace: Namespace!
+	user: User!
+	tags: [Tag!]
+}
+
+type ThesisTag {
+	name: String!
+	thesis: [Thesis!]
+}
+
+type User {
+	name: String!
+	username: String!
+	thesis: [Thesis!]
+	role: Role!
+}
+
+type Role {
+	id: String!
+	name: String!
+	users: [User!]
+}
