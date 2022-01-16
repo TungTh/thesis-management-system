@@ -16,9 +16,7 @@ export const getNamespaces = async (): Promise<GQLNamespace[]> => {
 		throw new Error(res.response.statusMessage);
 	}
 
-	var namespaces: GQLNamespace[];
-
-	namespaces = res.body.items.map(ns => ({
+	const namespaces = <GQLNamespace[]> res.body.items.map(ns => ({
 		name: ns.metadata.name
 	}));
 	
@@ -50,7 +48,7 @@ export const getPodMetasInNamespace = async (namespace: string): Promise<GQLMeta
 		throw new Error(res.response.statusMessage);
 	}
 
-	let podMetas = res.body.items.map(pod => <GQLMetadata> {
+	const podMetas = res.body.items.map(pod => <GQLMetadata> {
 		name: pod.metadata.name,
 		uid: pod.metadata.uid,
 		namespace: {
@@ -68,7 +66,7 @@ export const getPodInfo = async (namespace: string, podName: string): Promise<GQ
 		throw new Error(res.response.statusMessage);
 	}
 
-	let pod = <GQLPod> {
+	const pod = <GQLPod> {
 		meta: {
 			name: res.body.metadata.name,
 			uid: res.body.metadata.uid,
@@ -91,7 +89,7 @@ export const getServiceMetasInNamespace = async (namespace: string): Promise<GQL
 		throw new Error(res.response.statusMessage);
 	}
 
-	let serviceMetas = res.body.items.map(svc => <GQLMetadata> {
+	const serviceMetas = res.body.items.map(svc => <GQLMetadata> {
 		name: svc.metadata.name,
 		uid: svc.metadata.uid,
 		namespace: {
@@ -109,14 +107,14 @@ export const getServiceInfo = async (namespace: string, name: string): Promise<G
 		throw new Error(res.response.statusMessage);
 	}
 
-	let svc = stripReadOnly(res.body);
+	const svc = stripReadOnly(res.body);
 
-	let selectors = Object.entries(res.body.spec.selector).map(keyValue => ({
+	const selectors = Object.entries(res.body.spec.selector).map(keyValue => ({
 		name: keyValue[0],
 		value: keyValue[1],
 	}))
 
-	let ports = res.body.spec.ports.map(servicePort => <GQLServicePort> {
+	const ports = res.body.spec.ports.map(servicePort => <GQLServicePort> {
 		name: servicePort.name,
 		protocol: servicePort.protocol,
 		port: servicePort.port.toString(),
@@ -124,7 +122,7 @@ export const getServiceInfo = async (namespace: string, name: string): Promise<G
 		nodePort: servicePort.nodePort.toString(),
 	})
 
-	let service = <GQLService> {
+	const service = <GQLService> {
 		meta: {
 			name: res.body.metadata.name,
 			uid: res.body.metadata.uid,
@@ -148,7 +146,7 @@ export const getSecretMetasInNamespace = async (namespace: string): Promise<GQLM
 		throw new Error(res.response.statusMessage);
 	}
 
-	let secretMetas = res.body.items.map(secret => <GQLMetadata> {
+	const secretMetas = res.body.items.map(secret => <GQLMetadata> {
 		name: secret.metadata.name,
 		uid: secret.metadata.uid,
 		namespace: {
@@ -166,14 +164,14 @@ export const getSecretInfo = async (namespace: string, name: string): Promise<GQ
 		throw new Error(res.response.statusMessage);
 	}
 
-	let data = <GQLMapValue[]> Object.entries(res.body.data).map(keyValue => ({
+	const data = <GQLMapValue[]> Object.entries(res.body.data).map(keyValue => ({
 		key: keyValue[0],
 		value: Buffer.from(keyValue[1], 'base64').toString(),
 	}))
 
-	let yamlString = yaml.dump(stripReadOnly(res.body));
+	const yamlString = yaml.dump(stripReadOnly(res.body));
 
-	let secret = <GQLSecret> {
+	const secret = <GQLSecret> {
 		meta: {
 			name: res.body.metadata.name,
 			uid: res.body.metadata.uid,
@@ -196,7 +194,7 @@ export const getConfigMapMetasInNamespace = async (namespace: string): Promise<G
 		throw new Error(res.response.statusMessage);
 	}
 
-	let configMapMetas = res.body.items.map(cfgMap => <GQLMetadata> {
+	const configMapMetas = res.body.items.map(cfgMap => <GQLMetadata> {
 		name: cfgMap.metadata.name,
 		uid: cfgMap.metadata.uid,
 		namespace: {
@@ -214,14 +212,14 @@ export const getConfigMapInfo = async (namespace: string, name: string): Promise
 		throw new Error(res.response.statusMessage);
 	}
 
-	let data = <GQLMapValue[]> Object.entries(res.body.data).map(keyValue => ({
+	const data = <GQLMapValue[]> Object.entries(res.body.data).map(keyValue => ({
 		key: keyValue[0],
 		value: keyValue[1]
 	}))
 
-	let yamlString = yaml.dump(stripReadOnly(res.body));
+	const yamlString = yaml.dump(stripReadOnly(res.body));
 
-	let configMap = <GQLConfigMap> {
+	const configMap = <GQLConfigMap> {
 		meta: {
 			name: res.body.metadata.name,
 			uid: res.body.metadata.uid,
@@ -243,7 +241,7 @@ export const getPersistentVolumeClaimMetasInNamespace = async (namespace: string
 		throw new Error(res.response.statusMessage);
 	}
 
-	let pvcMetas = res.body.items.map(pvc => <GQLMetadata> {
+	const pvcMetas = res.body.items.map(pvc => <GQLMetadata> {
 		name: pvc.metadata.name,
 		uid: pvc.metadata.uid,
 		namespace: {
@@ -261,9 +259,9 @@ export const getPersistentVolumeClaimInfo = async (namespace: string, name: stri
 		throw new Error(res.response.statusMessage);
 	}
 
-	let accessModes = res.body.spec.accessModes.map(mode => GQLVolumeAccessMode[mode as keyof typeof GQLVolumeAccessMode]);
+	const accessModes = res.body.spec.accessModes.map(mode => GQLVolumeAccessMode[mode as keyof typeof GQLVolumeAccessMode]);
 
-	let pvc = <GQLPersistentVolumeClaim> {
+	const pvc = <GQLPersistentVolumeClaim> {
 		meta: {
 			name: res.body.metadata.name,
 			uid: res.body.metadata.uid,

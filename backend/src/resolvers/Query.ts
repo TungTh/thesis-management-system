@@ -14,7 +14,7 @@ export const allNamespaces = async (parent, args, context, info): Promise<GQLNam
 export const allPods = async (parent, args: NamespacedObject, context, info): Promise<GQLPod[]> => {
 	const podMetas = await coreAPI.getPodMetasInNamespace(args.namespace);
 
-	let pods = podMetas.map(podMeta => <GQLPod> {
+	const pods = podMetas.map(podMeta => <GQLPod> {
 		meta: podMeta
 	});
 
@@ -24,7 +24,7 @@ export const allPods = async (parent, args: NamespacedObject, context, info): Pr
 export const allDeployments = async (parent, args: NamespacedObject, context, info): Promise<GQLDeployment[]> => {
 	const dplMetas = await appAPI.getDeploymentMetasInNamespace(args.namespace);
 
-	let deployments = dplMetas.map(dplMeta => <GQLDeployment> {
+	const deployments = dplMetas.map(dplMeta => <GQLDeployment> {
 		meta: dplMeta
 	});
 
@@ -34,7 +34,7 @@ export const allDeployments = async (parent, args: NamespacedObject, context, in
 export const allStatefulSets = async (parent, args: NamespacedObject, context, info): Promise<GQLStatefulSet[]> => {
 	const sfsMetas = await appAPI.getStatefulSetMetasInNamespace(args.namespace);
 
-	let statefulSets = sfsMetas.map(sfsMeta => <GQLStatefulSet> {
+	const statefulSets = sfsMetas.map(sfsMeta => <GQLStatefulSet> {
 		meta: sfsMeta
 	});
 
@@ -44,7 +44,7 @@ export const allStatefulSets = async (parent, args: NamespacedObject, context, i
 export const allServices = async (parent, args: NamespacedObject, context, info): Promise<GQLService[]> => {
 	const serviceMetas = await coreAPI.getServiceMetasInNamespace(args.namespace);
 
-	let services = serviceMetas.map(serviceMeta => <GQLService> {
+	const services = serviceMetas.map(serviceMeta => <GQLService> {
 		meta: serviceMeta
 	});
 
@@ -54,7 +54,7 @@ export const allServices = async (parent, args: NamespacedObject, context, info)
 export const allConfigMaps = async (parent, args: NamespacedObject, context, info): Promise<GQLConfigMap[]> => {
 	const cfgMapMetas = await coreAPI.getConfigMapMetasInNamespace(parent.name);
 
-	let configMaps = cfgMapMetas.map(cfgMapMeta => <GQLConfigMap> {
+	const configMaps = cfgMapMetas.map(cfgMapMeta => <GQLConfigMap> {
 		meta: cfgMapMeta
 	});
 
@@ -64,7 +64,7 @@ export const allConfigMaps = async (parent, args: NamespacedObject, context, inf
 export const allSecrets = async (parent, args: NamespacedObject, context, info): Promise<GQLSecret[]> => {
 	const secretMetas = await coreAPI.getSecretMetasInNamespace(parent.name);
 
-	let secrets = secretMetas.map(secretMeta => <GQLSecret> {
+	const secrets = secretMetas.map(secretMeta => <GQLSecret> {
 		meta: secretMeta
 	});
 

@@ -16,7 +16,7 @@ export const getDeploymentMetasInNamespace = async (namespace: string): Promise<
 		throw new Error(res.response.statusMessage);
 	}
 
-	let deployments = res.body.items.map(dpl => <GQLMetadata> {
+	const deployments = res.body.items.map(dpl => <GQLMetadata> {
 		name: dpl.metadata.name,
 		uid: dpl.metadata.uid,
 		namespace: {
@@ -34,11 +34,11 @@ export const getDeploymentInfo = async (namespace: string, name: string): Promis
 		throw new Error(res.response.statusMessage);
 	}
 
-	let dpl = stripReadOnly(res.body);
+	const dpl = stripReadOnly(res.body);
 
 	
 
-	let deployment = <GQLDeployment> {
+	const deployment = <GQLDeployment> {
 		meta: {
 			name: res.body.metadata.name,
 			uid: res.body.metadata.uid,
@@ -54,13 +54,13 @@ export const getDeploymentInfo = async (namespace: string, name: string): Promis
 }
 
 export const getStatefulSetMetasInNamespace = async (namespace: string): Promise<GQLMetadata[]> => {
-	var res = await api.listNamespacedStatefulSet(namespace);
+	const res = await api.listNamespacedStatefulSet(namespace);
 
 	if (res.response.statusCode !== 200) {
 		throw new Error(res.response.statusMessage);
 	}
 
-	var statefulSets = res.body.items.map(sfs => <GQLMetadata> {
+	const statefulSets = res.body.items.map(sfs => <GQLMetadata> {
 		name: sfs.metadata.name,
 		uid: sfs.metadata.uid,
 		namespace: {
@@ -72,15 +72,15 @@ export const getStatefulSetMetasInNamespace = async (namespace: string): Promise
 }
 
 export const getStatefulSetInfo = async (namespace: string, name: string): Promise<GQLStatefulSet> => {
-	var res = await api.readNamespacedStatefulSet(name, namespace);
+	const res = await api.readNamespacedStatefulSet(name, namespace);
 
 	if (res.response.statusCode !== 200) {
 		throw new Error(res.response.statusMessage);
 	}
 
-	var sfs = stripReadOnly(res.body);
+	const sfs = stripReadOnly(res.body);
 
-	var statefulSet = <GQLStatefulSet> {
+	const statefulSet = <GQLStatefulSet> {
 		meta: {
 			name: res.body.metadata.name,
 			uid: res.body.metadata.uid,

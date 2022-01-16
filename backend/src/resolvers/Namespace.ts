@@ -9,7 +9,7 @@ export const name = (parent: GQLNamespace, args, context, info): string => {
 export const pods = async (parent: GQLNamespace, args, context, info): Promise<GQLPod[]> => {
 	const podMetas = await coreAPI.getPodMetasInNamespace(parent.name);
 
-	let pods = podMetas.map(podMeta => <GQLPod> {
+	const pods = podMetas.map(podMeta => <GQLPod> {
 		meta: podMeta
 	});
 
@@ -19,7 +19,7 @@ export const pods = async (parent: GQLNamespace, args, context, info): Promise<G
 export const deployments = async (parent: GQLNamespace, args, context, info): Promise<GQLDeployment[]> => {
 	const dplMetas = await appAPI.getDeploymentMetasInNamespace(parent.name);
 
-	let deployments = dplMetas.map(dplMeta => <GQLDeployment> {
+	const deployments = dplMetas.map(dplMeta => <GQLDeployment> {
 		meta: dplMeta 
 	});
 
@@ -29,7 +29,7 @@ export const deployments = async (parent: GQLNamespace, args, context, info): Pr
 export const statefulSets = async (parent: GQLNamespace, args, context, info): Promise<GQLStatefulSet[]> => {
 	const sfsMetas = await appAPI.getStatefulSetMetasInNamespace(parent.name);
 
-	let statefulSets = sfsMetas.map(sfsMeta => <GQLStatefulSet> {
+	const statefulSets = sfsMetas.map(sfsMeta => <GQLStatefulSet> {
 		meta: sfsMeta
 	});
 
@@ -39,7 +39,7 @@ export const statefulSets = async (parent: GQLNamespace, args, context, info): P
 export const configMaps = async (parent: GQLNamespace, args, context, info): Promise<GQLConfigMap[]> => {
 	const cfgMapMetas = await coreAPI.getConfigMapMetasInNamespace(parent.name);
 
-	let configMaps = cfgMapMetas.map(cfgMapMeta => <GQLConfigMap> {
+	const configMaps = cfgMapMetas.map(cfgMapMeta => <GQLConfigMap> {
 		meta: cfgMapMeta
 	});
 
@@ -49,7 +49,7 @@ export const configMaps = async (parent: GQLNamespace, args, context, info): Pro
 export const secrets = async (parent: GQLNamespace, args, context, info): Promise<GQLSecret[]> => {
 	const secretMetas = await coreAPI.getSecretMetasInNamespace(parent.name);
 
-	let secrets = secretMetas.map(secretMeta => <GQLSecret> {
+	const secrets = secretMetas.map(secretMeta => <GQLSecret> {
 		meta: secretMeta
 	});
 
@@ -59,7 +59,7 @@ export const secrets = async (parent: GQLNamespace, args, context, info): Promis
 export const services = async (parent: GQLNamespace, args, context, info): Promise<GQLService[]> => {
 	const serviceMetas = await coreAPI.getServiceMetasInNamespace(parent.name);
 
-	let services = serviceMetas.map(serviceMeta => <GQLService> {
+	const services = serviceMetas.map(serviceMeta => <GQLService> {
 		meta: serviceMeta
 	});
 

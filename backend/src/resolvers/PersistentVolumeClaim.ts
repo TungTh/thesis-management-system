@@ -5,13 +5,13 @@ export const meta = (parent: GQLPersistentVolumeClaim, args, context, info): GQL
 	return parent.meta;
 }
 
-export const volumeName = async (parent: GQLPersistentVolumeClaim, args, context, info): Promise<String> => {
+export const volumeName = async (parent: GQLPersistentVolumeClaim, args, context, info): Promise<string> => {
 	const pvc = await coreAPI.getPersistentVolumeClaimInfo(parent.meta.namespace.name, parent.meta.name);
 
 	return pvc.volumeName;
 }
 
-export const volumeMode = async (parent: GQLPersistentVolumeClaim, args, context, info): Promise<String> => {
+export const volumeMode = async (parent: GQLPersistentVolumeClaim, args, context, info): Promise<string> => {
 	const pvc = await coreAPI.getPersistentVolumeClaimInfo(parent.meta.namespace.name, parent.meta.name);
 	
 	return pvc.volumeMode;

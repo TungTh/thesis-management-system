@@ -6,7 +6,7 @@ interface V1Object {
 }
 
 export const stripReadOnly = <T extends V1Object> (obj: T): V1Object => {
-	let stripped = Object.assign({}, obj);
+	const stripped = Object.assign({}, obj);
 
 	delete stripped.status;
 	delete stripped.metadata.creationTimestamp;
