@@ -16,8 +16,7 @@ model User {
   updatedAt DateTime @updatedAt
   role      Role     @relation(fields: [roleId], references: [id])
   roleId    String
-  thesis    Thesis?  @relation(fields: [thesisId], references: [id])
-  thesisId  String?
+  thesis    Thesis?
 }
 
 model Role {
@@ -38,37 +37,38 @@ model Namespace {
 }
 
 model Thesis {
-  id            String         @id @default(cuid())
-  name          String         @unique
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  Namespace     Namespace      @relation(fields: [namespaceId], references: [id])
-  namespaceId   String         @unique
-  User          User?
-  ThesisListing ThesisListing?
-}
-
-model ThesisListing {
-  id             String      @id @default(cuid())
+  id             String        @id @default(cuid())
   studentName    String
   supervisorName String
   title          String
   summary        String?
   report         Bytes?
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  thesis         Thesis      @relation(fields: [thesisId], references: [id])
-  thesisId       String      @unique
-  tags           ThesisTag[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  Namespace      Namespace     @relation(fields: [namespaceId], references: [id])
+  namespaceId    String        @unique
+  User           User          @relation(fields: [userId], references: [id])
+  userId         String        @unique
+  tags           TagOnThesis[]
 }
 
 model ThesisTag {
-  id              String         @id @default(cuid())
-  name            String
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  ThesisListing   ThesisListing? @relation(fields: [thesisListingId], references: [id])
-  thesisListingId String?
+  id          String        @id @default(cuid())
+  name        String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  thesisOfTag TagOnThesis[]
+}
+
+model TagOnThesis {
+  thesis    Thesis    @relation(fields: [thesisId], references: [id])
+  thesisId  String
+  tag       ThesisTag @relation(fields: [tagId], references: [id])
+  tagId     String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@id([thesisId, tagId])
 }
 
 model kubeFile {
