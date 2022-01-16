@@ -5,13 +5,13 @@ metadata:
   namespace: default
 spec:
   capacity:
-    storage: 1Gi
+    storage: 2Gi
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   hostPath:
-    path: D:/volume
+    path: "/mnt/data"
 --- 
 
 apiVersion: v1

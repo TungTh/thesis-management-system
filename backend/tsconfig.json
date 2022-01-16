@@ -1,5 +1,8 @@
 {
-	"target": "esnext",
-	"module": "esnext",
-	"moduleResolution": "node",
+	"compilerOptions": {
+		"module": "esnext",
+		"target": "esnext",
+		"moduleResolution": "node"
+  },
+  "exclude": ["node_modules"]
 }

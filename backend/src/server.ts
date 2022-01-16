@@ -1,18 +1,16 @@
 import { ApolloServer } from 'apollo-server-express';
+import * as express from 'express';
 // import { PrismaClient } from '@prisma/client';
-
 import * as fs from 'fs';
 import * as path from 'path';
-import express = require('express');
-
+import * as Deployment from './resolvers/Deployment';
+import * as Mutation from './resolvers/Mutation';
+import * as Namespace from './resolvers/Namespace';
+import * as Pod from './resolvers/Pod';
 // const prisma = new PrismaClient();
+import * as Query from './resolvers/Query';
+import * as StatefulSet from './resolvers/StatefulSet';
 
-import * as Query from './resolvers/Query'
-import * as Mutation from './resolvers/Mutation'
-import * as Namespace from './resolvers/Namespace'
-import * as Pod from './resolvers/Pod'
-import * as Deployment from './resolvers/Deployment'
-import * as StatefulSet from './resolvers/StatefulSet'
 
 
 const resolvers = {
