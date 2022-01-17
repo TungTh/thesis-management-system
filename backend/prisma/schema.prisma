@@ -8,32 +8,38 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
-  username  String   @unique
+  username  String    @unique
   password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  role      Role     @relation(fields: [roleId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+  role      Role      @relation(fields: [roleId], references: [id])
   roleId    String
   thesis    Thesis?
+
+  @@map("users")
 }
 
 model Role {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String    @id @default(cuid())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
   User      User[]
+
+  @@map("roles")
 }
 
 model Namespace {
   id        String     @id @default(cuid())
   name      String     @unique
   createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  updatedAt DateTime?  @updatedAt
   Thesis    Thesis[]
   files     kubeFile[]
+
+  @@map("namespaces")
 }
 
 model Thesis {
@@ -44,20 +50,24 @@ model Thesis {
   summary        String?
   report         Bytes?
   createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  updatedAt      DateTime?     @updatedAt
   Namespace      Namespace     @relation(fields: [namespaceId], references: [id])
   namespaceId    String        @unique
   User           User          @relation(fields: [userId], references: [id])
   userId         String        @unique
   tags           TagOnThesis[]
+
+  @@map("theses")
 }
 
 model ThesisTag {
   id          String        @id @default(cuid())
   name        String
   createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  updatedAt   DateTime?     @updatedAt
   thesisOfTag TagOnThesis[]
+
+  @@map("thesis_tags")
 }
 
 model TagOnThesis {
@@ -66,17 +76,20 @@ model TagOnThesis {
   tag       ThesisTag @relation(fields: [tagId], references: [id])
   tagId     String
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  updatedAt DateTime? @updatedAt
 
   @@id([thesisId, tagId])
+  @@map("tag_on_thesis")
 }
 
 model kubeFile {
   id          String    @id @default(cuid())
   name        String    @unique
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  updatedAt   DateTime? @updatedAt
   content     Json
   Namespace   Namespace @relation(fields: [namespaceId], references: [id])
   namespaceId String
+
+  @@map("kube_files")
 }
