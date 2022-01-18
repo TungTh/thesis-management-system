@@ -144,11 +144,11 @@ export enum GQLServiceType {
 }
 
 export interface GQLServicePort {
-  name: string;
+  name?: string;
   protocol: GQLPortProtocol;
   port: number;
-  targetPort: string;
-  nodePort: number;
+  targetPort?: string;
+  nodePort?: number;
 }
 
 export interface GQLDeploymentInput {
@@ -223,11 +223,11 @@ export interface GQLServiceInput {
 }
 
 export interface GQLServicePortInput {
-  name: string;
+  name?: string;
   protocol: GQLPortProtocol;
   port: number;
-  targetPort: string;
-  nodePort: number;
+  targetPort?: string;
+  nodePort?: number;
 }
 
 export interface GQLConfigMapInput {

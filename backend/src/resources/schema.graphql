@@ -186,7 +186,7 @@ input SecretInput {
 
 type Service {
 	meta: Metadata!
-	dplName: String!
+	dplName: String
 	type: ServiceType!
 	ports: [ServicePort!]
 	yaml: String!
@@ -207,19 +207,19 @@ input ServiceInput {
 }
 
 type ServicePort {
-	name: String!
+	name: String
 	protocol: PortProtocol!
 	port: Int!
-	targetPort: String!
-	nodePort: Int!
+	targetPort: String
+	nodePort: Int
 }
 
 input ServicePortInput {
-	name: String!
+	name: String
 	protocol: PortProtocol!
 	port: Int!
-	targetPort: String!
-	nodePort: Int!
+	targetPort: String
+	nodePort: Int
 }
 
 type PersistentVolume {
