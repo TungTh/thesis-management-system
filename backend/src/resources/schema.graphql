@@ -10,7 +10,7 @@ type Query {
 
 type Mutation {
 	createNamespace(name: String!): Namespace
-	createDeployment(namespace: String!): Deployment
+	createDeployment(namespace: String!, deployment: DeploymentInput!): Deployment
 	createStatefulSet(namespace: String!): StatefulSet
 	createService(namespace: String!): Service
 	createConfigMap(namespace: String!): ConfigMap
@@ -33,20 +33,36 @@ type Metadata {
 	namespace: Namespace!
 }
 
+input MetadataInput {
+	name: String!
+	uid: String
+	namespace: String
+}
+
 type Deployment {
 	meta: Metadata!
 	replicas: Int!
-	labelSelector: Label!
 	template: PodTemplate!
 	yaml: String!
+}
+
+input DeploymentInput {
+	name: String!
+	replicas: Int!
+	template: PodTemplateInput!
 }
 
 type StatefulSet {
 	meta: Metadata!
 	replicas: Int!
-	labelSelector: [Label!]
 	serviceName: String!
 	yaml: String!
+}
+
+input StatefulSetInput {
+	name: String!
+	replicas: Int!
+	serviceName: String!
 }
 
 type Pod {
@@ -61,6 +77,11 @@ type PodTemplate {
 	containers: [Container!]!
 }
 
+input PodTemplateInput {
+	meta: MetadataInput!
+	containers: [ContainerInput!]!
+}
+
 type Container {
 	name: String!
 	image: String!
@@ -69,8 +90,22 @@ type Container {
 	env: [EnvVar!]
 }
 
+input ContainerInput {
+	name: String!
+	image: String!
+	resources: ResourceRequirementsInput
+	ports: [ContainerPortInput!]
+	env: [EnvVarInput!]
+}
+
 type ContainerPort {
-	containterPort: Int!
+	containerPort: Int!
+	name: String
+	protocol: PortProtocol 
+}
+
+input ContainerPortInput {
+	containerPort: Int!
 	name: String
 	protocol: PortProtocol 
 }
@@ -87,12 +122,28 @@ type EnvVar {
 	valueFrom: EnvVarSrc
 }
 
+input EnvVarInput {
+	name: String!
+	value: String
+	valueFrom: EnvVarSrcInput
+}
+
 type EnvVarSrc {
 	configMapKeyRef: KeyRef
 	secretKeyRef: KeyRef
 }
 
+input EnvVarSrcInput {
+	configMapKeyRef: KeyRefInput
+	secretKeyRef: KeyRefInput
+}
+
 type KeyRef {
+	name: String!
+	key: String!
+}
+
+input KeyRefInput {
 	name: String!
 	key: String!
 }
@@ -118,7 +169,6 @@ type Secret {
 type Service {
 	meta: Metadata!
 	type: ServiceType!
-	selector: [Label!]!
 	ports: [ServicePort!]
 	yaml: String!
 }
@@ -177,14 +227,19 @@ type ResourceRequirements {
 	requests: Resource
 }
 
+input ResourceRequirementsInput {
+	limits: ResourceInput
+	requests: ResourceInput
+}
+
 type Resource {
 	cpu: String
 	memory: String
 }
 
-type Label {
-	name: String!
-	value: String!
+input ResourceInput {
+	cpu: String
+	memory: String
 }
 
 type Thesis {
@@ -195,7 +250,7 @@ type Thesis {
 	report: String
 	namespace: Namespace!
 	user: User!
-	tags: [Tag!]
+	tags: [ThesisTag!]
 }
 
 type ThesisTag {
