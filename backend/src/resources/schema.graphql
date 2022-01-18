@@ -11,10 +11,10 @@ type Query {
 type Mutation {
 	createNamespace(name: String!): Namespace
 	createDeployment(namespace: String!, deployment: DeploymentInput!): Deployment
-	createStatefulSet(namespace: String!): StatefulSet
-	createService(namespace: String!): Service
-	createConfigMap(namespace: String!): ConfigMap
-	createSecret(namespace: String!): Secret
+	createStatefulSet(namespace: String!, StatefulSet: StatefulSetInput!): StatefulSet
+	createService(namespace: String!, service: ServiceInput!): Service
+	createConfigMap(namespace: String!, configMap: ConfigMapInput!): ConfigMap
+	createSecret(namespace: String!, secret: SecretInput!): Secret
 }
 
 type Namespace {
@@ -56,6 +56,7 @@ type StatefulSet {
 	meta: Metadata!
 	replicas: Int!
 	serviceName: String!
+	template: PodTemplate!
 	yaml: String!
 }
 
@@ -63,6 +64,7 @@ input StatefulSetInput {
 	name: String!
 	replicas: Int!
 	serviceName: String!
+	template: PodTemplateInput!
 }
 
 type Pod {
@@ -154,7 +156,17 @@ type ConfigMap {
 	yaml: String!
 }
 
+input ConfigMapInput {
+	name: String!
+	data: [MapValueInput!]
+}
+
 type MapValue {
+	key: String!
+	value: String!
+}
+
+input MapValueInput {
 	key: String!
 	value: String!
 }
@@ -164,6 +176,12 @@ type Secret {
 	type: String!
 	data: [MapValue!]
 	yaml: String!
+}
+
+input SecretInput {
+	name: String!
+	type: String!
+	data: [MapValueInput!]
 }
 
 type Service {

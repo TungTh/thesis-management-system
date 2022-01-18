@@ -12,6 +12,10 @@ export interface GQLQuery {
   default?: string;
 }
 
+export interface GQLMutation {
+  default?: string;
+}
+
 export interface GQLNamespace {
   name: string;
   deployments?: Array<GQLDeployment>;
@@ -25,7 +29,6 @@ export interface GQLNamespace {
 export interface GQLDeployment {
   meta: GQLMetadata;
   replicas: number;
-  labelSelector: GQLLabel;
   template: GQLPodTemplate;
   yaml: string;
 }
@@ -34,11 +37,6 @@ export interface GQLMetadata {
   name: string;
   uid: string;
   namespace: GQLNamespace;
-}
-
-export interface GQLLabel {
-  name: string;
-  value: string;
 }
 
 export interface GQLPodTemplate {
@@ -65,7 +63,7 @@ export interface GQLResource {
 }
 
 export interface GQLContainerPort {
-  containterPort: number;
+  containerPort: number;
   name?: string;
   protocol?: GQLPortProtocol;
 }
@@ -95,8 +93,8 @@ export interface GQLKeyRef {
 export interface GQLStatefulSet {
   meta: GQLMetadata;
   replicas: number;
-  labelSelector?: Array<GQLLabel>;
   serviceName: string;
+  template: GQLPodTemplate;
   yaml: string;
 }
 
@@ -128,7 +126,6 @@ export interface GQLSecret {
 export interface GQLService {
   meta: GQLMetadata;
   type: GQLServiceType;
-  selector: Array<GQLLabel>;
   ports?: Array<GQLServicePort>;
   yaml: string;
 }
@@ -148,9 +145,109 @@ export interface GQLServicePort {
   nodePort: string;
 }
 
+export interface GQLMetadataInput {
+  name: string;
+  uid?: string;
+  namespace?: string;
+}
+
+export interface GQLDeploymentInput {
+  name: string;
+  replicas: number;
+  template: GQLPodTemplateInput;
+}
+
+export interface GQLPodTemplateInput {
+  meta: GQLMetadataInput;
+  containers: Array<GQLContainerInput>;
+}
+
+export interface GQLContainerInput {
+  name: string;
+  image: string;
+  resources?: GQLResourceRequirementsInput;
+  ports?: Array<GQLContainerPortInput>;
+  env?: Array<GQLEnvVarInput>;
+}
+
+export interface GQLResourceRequirementsInput {
+  limits?: GQLResourceInput;
+  requests?: GQLResourceInput;
+}
+
+export interface GQLResourceInput {
+  cpu?: string;
+  memory?: string;
+}
+
+export interface GQLContainerPortInput {
+  containerPort: number;
+  name?: string;
+  protocol?: GQLPortProtocol;
+}
+
+export interface GQLEnvVarInput {
+  name: string;
+  value?: string;
+  valueFrom?: GQLEnvVarSrcInput;
+}
+
+export interface GQLEnvVarSrcInput {
+  configMapKeyRef?: GQLKeyRefInput;
+  secretKeyRef?: GQLKeyRefInput;
+}
+
+export interface GQLKeyRefInput {
+  name: string;
+  key: string;
+}
+
+export interface GQLStatefulSetInput {
+  name: string;
+  replicas: number;
+  serviceName: string;
+  template: GQLPodTemplateInput;
+}
+
+export interface GQLConfigMapInput {
+  name: string;
+  data?: Array<GQLMapValueInput>;
+}
+
+export interface GQLMapValueInput {
+  key: string;
+  value: string;
+}
+
+export interface GQLSecretInput {
+  name: string;
+  type: string;
+  data?: Array<GQLMapValueInput>;
+}
+
 export interface GQLServiceInput {
   name: string;
   type: GQLServiceType;
+}
+
+export interface GQLPersistentVolume {
+  meta: GQLMetadata;
+  accessMode: Array<GQLVolumeAccessMode>;
+  volumeMode: string;
+  capacity: string;
+  reclaimPolicy: GQLPersistentVolumeReclaimPolicy;
+}
+
+export enum GQLVolumeAccessMode {
+  ReadWriteOnce = 'ReadWriteOnce',
+  ReadOnlyMany = 'ReadOnlyMany',
+  ReadWriteMany = 'ReadWriteMany',
+  ReadWriteOncePod = 'ReadWriteOncePod'
+}
+
+export enum GQLPersistentVolumeReclaimPolicy {
+  Retain = 'Retain',
+  Delete = 'Delete'
 }
 
 export interface GQLPersistentVolumeClaim {
@@ -161,10 +258,32 @@ export interface GQLPersistentVolumeClaim {
   resources?: GQLResourceRequirements;
 }
 
-export enum GQLVolumeAccessMode {
-  ReadWriteOnce = 'ReadWriteOnce',
-  ReadOnlyMany = 'ReadOnlyMany',
-  ReadWriteMany = 'ReadWriteMany',
-  ReadWriteOncePod = 'ReadWriteOncePod'
+export interface GQLThesis {
+  title: string;
+  studentName: string;
+  supervisorName: string;
+  summary?: string;
+  report?: string;
+  namespace: GQLNamespace;
+  user: GQLUser;
+  tags?: Array<GQLThesisTag>;
+}
+
+export interface GQLUser {
+  name: string;
+  username: string;
+  thesis?: Array<GQLThesis>;
+  role: GQLRole;
+}
+
+export interface GQLRole {
+  id: string;
+  name: string;
+  users?: Array<GQLUser>;
+}
+
+export interface GQLThesisTag {
+  name: string;
+  thesis?: Array<GQLThesis>;
 }
 
