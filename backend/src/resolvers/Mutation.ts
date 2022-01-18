@@ -4,7 +4,7 @@ import { createDeployment as createDeploymentAPI, createStatefulSet as createSta
 import { createConfigMap as createConfigMapAPI, createNamespace as createNamespaceAPI, createSecret as createSecretAPI, createService as createServiceAPI, getConfigMapMetasInNamespace, getNamespaces, getSecretMetasInNamespace, getServiceMetasInNamespace } from "../k8s/coreAPI";
 import { GQLConfigMap, GQLConfigMapInput, GQLDeployment, GQLDeploymentInput, GQLMutation, GQLNamespace, GQLSecret, GQLSecretInput, GQLService, GQLServiceInput, GQLStatefulSetInput } from "../schemaTypes";
 
-export const createNamespace = async (parent: GQLMutation, args: { name: string }, context: { prisma: PrismaClient}, info): Promise<GQLNamespace> => {
+export const createNamespace = async (parent: GQLMutation, args: { name: string }, context: { prisma: PrismaClient}): Promise<GQLNamespace> => {
 	const existingNamespaces = await getNamespaces();
 
 	for (const ns of existingNamespaces) {
@@ -26,7 +26,7 @@ export const createNamespace = async (parent: GQLMutation, args: { name: string 
 	return null;
 }
 
-export const createDeployment = async (parent: GQLMutation, args: { namespace: string, deployment: GQLDeploymentInput }, context: { prisma: PrismaClient }, info): Promise<GQLDeployment> => {
+export const createDeployment = async (parent: GQLMutation, args: { namespace: string, deployment: GQLDeploymentInput }, context: { prisma: PrismaClient }): Promise<GQLDeployment> => {
 	const existingDeployments = await getDeploymentMetasInNamespace(args.namespace);
 
 	for (const dpl of existingDeployments) {
@@ -42,7 +42,7 @@ export const createDeployment = async (parent: GQLMutation, args: { namespace: s
 	return response;
 }
 
-export const createStatefulSet = async (parent: GQLMutation, args: { namespace: string, statefulSet: GQLStatefulSetInput }, context: { prisma: PrismaClient }, info): Promise<GQLDeployment> => {
+export const createStatefulSet = async (parent: GQLMutation, args: { namespace: string, statefulSet: GQLStatefulSetInput }, context: { prisma: PrismaClient }): Promise<GQLDeployment> => {
 	const existingStatefulSets = await getStatefulSetMetasInNamespace(args.namespace);
 
 	for (const sts of existingStatefulSets) {
@@ -58,7 +58,7 @@ export const createStatefulSet = async (parent: GQLMutation, args: { namespace: 
 	return response;
 }
 
-export const createService = async (parent: GQLMutation, args: { namespace: string, service: GQLServiceInput }, context: { prisma: PrismaClient }, info): Promise<GQLService> => {
+export const createService = async (parent: GQLMutation, args: { namespace: string, service: GQLServiceInput }, context: { prisma: PrismaClient }): Promise<GQLService> => {
 	const existingServices = await getServiceMetasInNamespace(args.namespace);
 
 	for (const svc of existingServices) {
@@ -74,7 +74,7 @@ export const createService = async (parent: GQLMutation, args: { namespace: stri
 	return response;
 }
 
-export const createSecret = async (parent: GQLMutation, args: { namespace: string, secret: GQLSecretInput }, context: { prisma: PrismaClient }, info): Promise<GQLSecret> => {
+export const createSecret = async (parent: GQLMutation, args: { namespace: string, secret: GQLSecretInput }, context: { prisma: PrismaClient }): Promise<GQLSecret> => {
 	const existingSecrets = await getSecretMetasInNamespace(args.namespace);
 
 	for (const secret of existingSecrets) {
@@ -90,7 +90,7 @@ export const createSecret = async (parent: GQLMutation, args: { namespace: strin
 	return response;
 }
 
-export const createConfigMap = async (parent: GQLMutation, args: { namespace: string, configMap: GQLConfigMapInput }, context: { prisma: PrismaClient }, info): Promise<GQLConfigMap> => {
+export const createConfigMap = async (parent: GQLMutation, args: { namespace: string, configMap: GQLConfigMapInput }, context: { prisma: PrismaClient }): Promise<GQLConfigMap> => {
 	const existingConfigMaps = await getConfigMapMetasInNamespace(args.namespace);
 
 	for (const cm of existingConfigMaps) {

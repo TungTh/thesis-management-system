@@ -127,7 +127,7 @@ export const getServiceInfo = async (namespace: string, name: string): Promise<G
 				name: res.body.metadata.namespace,
 			}
 		},
-		dplName: res.body.spec.selector.app,
+		dplName: res.body.spec.selector && res.body.spec.selector.app ? res.body.spec.selector.app : "",
 		type: res.body.spec.type,
 		ports: ports,
 		yaml: yaml.dump(svc),
