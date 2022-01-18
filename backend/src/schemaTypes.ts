@@ -13,7 +13,12 @@ export interface GQLQuery {
 }
 
 export interface GQLMutation {
-  default?: string;
+  createNamespace?: GQLNamespace;
+  createDeployment?: GQLDeployment;
+  createStatefulSet?: GQLStatefulSet;
+  createService?: GQLService;
+  createConfigMap?: GQLConfigMap;
+  createSecret?: GQLSecret;
 }
 
 export interface GQLNamespace {
@@ -125,6 +130,7 @@ export interface GQLSecret {
 
 export interface GQLService {
   meta: GQLMetadata;
+  dplName: string;
   type: GQLServiceType;
   ports?: Array<GQLServicePort>;
   yaml: string;
@@ -139,16 +145,10 @@ export enum GQLServiceType {
 
 export interface GQLServicePort {
   name: string;
-  protocol: string;
-  port: string;
+  protocol: GQLPortProtocol;
+  port: number;
   targetPort: string;
-  nodePort: string;
-}
-
-export interface GQLMetadataInput {
-  name: string;
-  uid?: string;
-  namespace?: string;
+  nodePort: number;
 }
 
 export interface GQLDeploymentInput {
@@ -160,6 +160,12 @@ export interface GQLDeploymentInput {
 export interface GQLPodTemplateInput {
   meta: GQLMetadataInput;
   containers: Array<GQLContainerInput>;
+}
+
+export interface GQLMetadataInput {
+  name: string;
+  uid?: string;
+  namespace?: string;
 }
 
 export interface GQLContainerInput {
@@ -209,6 +215,21 @@ export interface GQLStatefulSetInput {
   template: GQLPodTemplateInput;
 }
 
+export interface GQLServiceInput {
+  name: string;
+  dplName: string;
+  type: GQLServiceType;
+  ports?: Array<GQLServicePortInput>;
+}
+
+export interface GQLServicePortInput {
+  name: string;
+  protocol: GQLPortProtocol;
+  port: number;
+  targetPort: string;
+  nodePort: number;
+}
+
 export interface GQLConfigMapInput {
   name: string;
   data?: Array<GQLMapValueInput>;
@@ -223,11 +244,6 @@ export interface GQLSecretInput {
   name: string;
   type: string;
   data?: Array<GQLMapValueInput>;
-}
-
-export interface GQLServiceInput {
-  name: string;
-  type: GQLServiceType;
 }
 
 export interface GQLPersistentVolume {
