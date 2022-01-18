@@ -1,6 +1,7 @@
 import k8s from '@kubernetes/client-node';
 import * as yaml from 'js-yaml';
-import { GQLDeployment, GQLMetadata, GQLStatefulSet } from '../schemaTypes';
+import { GQLDeployment, GQLDeploymentInput, GQLMetadata, GQLStatefulSet, GQLStatefulSetInput } from '../schemaTypes';
+import { errorStatusCodes } from '../util/UtilConstant';
 import { stripReadOnly } from './objectUtil';
 const { KubeConfig, AppsV1Api } = k8s;
 
@@ -12,7 +13,7 @@ const api = kc.makeApiClient(AppsV1Api);
 export const getDeploymentMetasInNamespace = async (namespace: string): Promise<GQLMetadata[]> => {
 	const res = await api.listNamespacedDeployment(namespace);
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
 
@@ -30,7 +31,7 @@ export const getDeploymentMetasInNamespace = async (namespace: string): Promise<
 export const getDeploymentInfo = async (namespace: string, name: string): Promise<GQLDeployment> => {
 	const res = await api.readNamespacedDeployment(name, namespace);
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
 
@@ -53,10 +54,73 @@ export const getDeploymentInfo = async (namespace: string, name: string): Promis
 	return deployment;
 }
 
+export const createDeployment = async (namespace: string, deployment: GQLDeploymentInput): Promise<GQLDeployment> => {
+	const dpl = <k8s.V1Deployment> {
+		metadata: {
+			name: deployment.name,
+			namespace: namespace,
+		},
+		spec: {
+			replicas: deployment.replicas,
+			selector: {
+				matchLabels: {
+					app: deployment.name,
+				}
+			},
+			template: {
+				metadata: {
+					labels: {
+						app: deployment.name,
+					}
+				},
+				spec: {
+					containers: deployment.template.containers.map(c => {
+						return {
+							name: c.name,
+							image: c.image,
+							...(c.ports && {ports: c.ports.map(p => {
+								return {
+									containerPort: p.containerPort,
+									protocol: p.protocol,
+								}
+							})}),
+							...(c.env && {env: c.env.map(e => {
+								return {
+									name: e.name,
+									value: e.value,
+									valueFrom: e.valueFrom,
+								}
+							})}),
+							...(c.resources && {resources: {
+								...(c.resources.limits && {limits: {
+									cpu: c.resources.limits.cpu,
+									memory: c.resources.limits.memory,
+								}}),
+								...(c.resources.requests && {requests: {
+									cpu: c.resources.requests.cpu,
+									memory: c.resources.requests.memory,
+								}}),
+							}}),
+						}
+					}),
+				}
+			}
+		}
+	}
+
+	const res = await api.createNamespacedDeployment(namespace, dpl);
+
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return getDeploymentInfo(namespace, deployment.name);
+}
+
 export const getStatefulSetMetasInNamespace = async (namespace: string): Promise<GQLMetadata[]> => {
 	const res = await api.listNamespacedStatefulSet(namespace);
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
 
@@ -74,7 +138,7 @@ export const getStatefulSetMetasInNamespace = async (namespace: string): Promise
 export const getStatefulSetInfo = async (namespace: string, name: string): Promise<GQLStatefulSet> => {
 	const res = await api.readNamespacedStatefulSet(name, namespace);
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
 
@@ -95,3 +159,66 @@ export const getStatefulSetInfo = async (namespace: string, name: string): Promi
 	return statefulSet;
 }
 
+export const createStatefulSet = async (namespace: string, statefulSet: GQLStatefulSetInput): Promise<GQLStatefulSet> => {
+	const sfs = <k8s.V1StatefulSet> {
+		metadata: {
+			name: statefulSet.name,
+			namespace: namespace,
+		},
+		spec: {
+			replicas: statefulSet.replicas,
+			selector: {
+				matchLabels: {
+					app: statefulSet.name,
+				}
+			},
+			serviceName: statefulSet.serviceName,
+			template: {
+				metadata: {
+					labels: {
+						app: statefulSet.name,
+					}
+				},
+				spec: {
+					containers: statefulSet.template.containers.map(c => {
+						return {
+							name: c.name,
+							image: c.image,
+							...(c.ports && {ports: c.ports.map(p => {
+								return {
+									containerPort: p.containerPort,
+									protocol: p.protocol,
+								}
+							})}),
+							...(c.env && {env: c.env.map(e => {
+								return {
+									name: e.name,
+									value: e.value,
+									valueFrom: e.valueFrom,
+								}
+							})}),
+							...(c.resources && {resources: {
+								...(c.resources.limits && {limits: {
+									cpu: c.resources.limits.cpu,
+									memory: c.resources.limits.memory,
+								}}),
+								...(c.resources.requests && {requests: {
+									cpu: c.resources.requests.cpu,
+									memory: c.resources.requests.memory,
+								}}),
+							}}),
+						}
+					}),
+				}
+			}
+		}
+	}
+
+	const res = await api.createNamespacedStatefulSet(namespace, sfs);
+
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return getStatefulSetInfo(namespace, statefulSet.name);
+}

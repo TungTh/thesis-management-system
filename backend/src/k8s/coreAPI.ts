@@ -1,6 +1,7 @@
 import k8s from "@kubernetes/client-node";
 import * as yaml from "js-yaml";
-import { GQLConfigMap, GQLMapValue, GQLMetadata, GQLNamespace, GQLPersistentVolumeClaim, GQLPod, GQLSecret, GQLService, GQLServicePort, GQLVolumeAccessMode } from "../schemaTypes";
+import { GQLConfigMap, GQLConfigMapInput, GQLMapValue, GQLMetadata, GQLNamespace, GQLPersistentVolumeClaim, GQLPod, GQLSecret, GQLSecretInput, GQLService, GQLServiceInput, GQLServicePort, GQLVolumeAccessMode } from "../schemaTypes";
+import { errorStatusCodes } from "../util/UtilConstant";
 import { stripReadOnly } from "./objectUtil";
 
 const { CoreV1Api, KubeConfig } = k8s;
@@ -12,7 +13,7 @@ const api = kc.makeApiClient(CoreV1Api);
 export const getNamespaces = async (): Promise<GQLNamespace[]> => {
 	const res = await api.listNamespace();
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
 
@@ -32,7 +33,8 @@ export const createNamespace = async (name: string): Promise<GQLNamespace> => {
 
 	const res = await api.createNamespace(namespace);
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		console.log(`[LOG] Error creating namespace ${name}, statusCode: ${res.response.statusCode}`);
 		throw new Error(res.response.statusMessage);
 	}
 
@@ -44,7 +46,7 @@ export const createNamespace = async (name: string): Promise<GQLNamespace> => {
 export const getPodMetasInNamespace = async (namespace: string): Promise<GQLMetadata[]> => {
 	const res = await api.listNamespacedPod(namespace);
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
 
@@ -62,7 +64,7 @@ export const getPodMetasInNamespace = async (namespace: string): Promise<GQLMeta
 export const getPodInfo = async (namespace: string, podName: string): Promise<GQLPod> => {
 	const res = await api.readNamespacedPod(podName, namespace);
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
 
@@ -85,7 +87,7 @@ export const getPodInfo = async (namespace: string, podName: string): Promise<GQ
 export const getServiceMetasInNamespace = async (namespace: string): Promise<GQLMetadata[]> => {
 	const res = await api.listNamespacedService(namespace);
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
 
@@ -103,23 +105,18 @@ export const getServiceMetasInNamespace = async (namespace: string): Promise<GQL
 export const getServiceInfo = async (namespace: string, name: string): Promise<GQLService> => {
 	const res = await api.readNamespacedService(name, namespace);
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
 
 	const svc = stripReadOnly(res.body);
 
-	const selectors = Object.entries(res.body.spec.selector).map(keyValue => ({
-		name: keyValue[0],
-		value: keyValue[1],
-	}))
-
 	const ports = res.body.spec.ports.map(servicePort => <GQLServicePort> {
 		name: servicePort.name,
 		protocol: servicePort.protocol,
-		port: servicePort.port.toString(),
+		port: servicePort.port,
 		targetPort: servicePort.targetPort.toString(),
-		nodePort: servicePort.nodePort.toString(),
+		nodePort: servicePort.nodePort,
 	})
 
 	const service = <GQLService> {
@@ -130,8 +127,8 @@ export const getServiceInfo = async (namespace: string, name: string): Promise<G
 				name: res.body.metadata.namespace,
 			}
 		},
+		dplName: res.body.spec.selector.app,
 		type: res.body.spec.type,
-		selector: selectors,
 		ports: ports,
 		yaml: yaml.dump(svc),
 	}
@@ -139,10 +136,43 @@ export const getServiceInfo = async (namespace: string, name: string): Promise<G
 	return service;
 }
 
+export const createService = async (namespace: string, service: GQLServiceInput): Promise<GQLService> => {
+	const svc = <k8s.V1Service> {
+		metadata: {
+			name: service.name,
+			namespace: namespace,
+		},
+		spec: {
+			selector: {
+				app: service.dplName,
+			},
+			ports: service.ports.map(port => <k8s.V1ServicePort> {
+				name: port.name,
+				protocol: port.protocol,
+				port: port.port,
+				targetPort: {
+					strVal: port.targetPort,
+					type: 'IntOrString'
+				},
+				nodePort: port.nodePort,
+			}),
+			type: service.type,
+		}
+	}
+
+	const res = await api.createNamespacedService(namespace, svc);
+
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return null;
+}
+
 export const getSecretMetasInNamespace = async (namespace: string): Promise<GQLMetadata[]> => {
 	const res = await api.listNamespacedSecret(namespace);
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
 
@@ -160,7 +190,7 @@ export const getSecretMetasInNamespace = async (namespace: string): Promise<GQLM
 export const getSecretInfo = async (namespace: string, name: string): Promise<GQLSecret> => {
 	const res = await api.readNamespacedSecret(name, namespace);
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
 
@@ -187,10 +217,32 @@ export const getSecretInfo = async (namespace: string, name: string): Promise<GQ
 	return secret;
 }
 
+export const createSecret = async (namespace: string, secret: GQLSecretInput): Promise<GQLSecret> => {
+	const sec = <k8s.V1Secret> { 
+		metadata: {
+			name: secret.name,
+			namespace: namespace,
+		},
+		type: secret.type,
+		data: Object.entries(secret.data).reduce((acc, keyValue) => {
+			acc[keyValue[1].key] = Buffer.from(keyValue[1].value).toString('base64');
+			return acc;
+		}, {}),
+	}
+
+	const res = await api.createNamespacedSecret(namespace, sec);
+
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return getSecretInfo(namespace, secret.name);
+}
+
 export const getConfigMapMetasInNamespace = async (namespace: string): Promise<GQLMetadata[]> => {
 	const res = await api.listNamespacedConfigMap(namespace);
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
 
@@ -208,7 +260,7 @@ export const getConfigMapMetasInNamespace = async (namespace: string): Promise<G
 export const getConfigMapInfo = async (namespace: string, name: string): Promise<GQLConfigMap> => {
 	const res = await api.readNamespacedConfigMap(name, namespace);
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
 
@@ -234,10 +286,31 @@ export const getConfigMapInfo = async (namespace: string, name: string): Promise
 	return configMap;
 }
 
+export const createConfigMap = async (namespace: string, configMap: GQLConfigMapInput): Promise<GQLConfigMap> => {
+	const cfgMap = <k8s.V1ConfigMap> {
+		metadata: {
+			name: configMap.name,
+			namespace: namespace,
+		},
+		data: Object.entries(configMap.data).reduce((acc, keyValue) => {
+			acc[keyValue[1].key] = keyValue[1].value;
+			return acc;
+		}, {}),
+	}
+
+	const res = await api.createNamespacedConfigMap(namespace, cfgMap);
+
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return getConfigMapInfo(namespace, configMap.name);
+}
+
 export const getPersistentVolumeClaimMetasInNamespace = async (namespace: string): Promise<GQLMetadata[]> => {
 	const res = await api.listNamespacedPersistentVolumeClaim(namespace);
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
 
@@ -255,7 +328,7 @@ export const getPersistentVolumeClaimMetasInNamespace = async (namespace: string
 export const getPersistentVolumeClaimInfo = async (namespace: string, name: string): Promise<GQLPersistentVolumeClaim> => {
 	const res = await api.readNamespacedPersistentVolumeClaim(namespace, name);
 
-	if (res.response.statusCode !== 200) {
+	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
 

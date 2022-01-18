@@ -16,6 +16,7 @@ export const stripReadOnly = <T extends V1Object> (obj: T): V1Object => {
 	delete stripped.metadata.resourceVersion;
 	delete stripped.metadata.selfLink;
 	delete stripped.metadata.uid;
+	delete stripped.metadata.managedFields;
 
 	return stripped;
 }
