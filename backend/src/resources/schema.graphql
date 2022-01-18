@@ -1,4 +1,7 @@
 type Query {
+	allUsers: [User!]!
+	getUserById(id: Int!): User
+
 	allNamespaces: [Namespace!]
 	allPods(namespace: String!): [Pod!]
 	allDeployments(namespace: String!): [Deployment!]
@@ -9,6 +12,11 @@ type Query {
 }
 
 type Mutation {
+	signup(user: UserInput!): AuthPayload!
+	login(username: String!, password: String!): AuthPayload!
+	logout:	Boolean!
+	refreshJWT:	AuthPayload!
+	
 	createNamespace(name: String!): Namespace
 	createDeployment(namespace: String!, deployment: DeploymentInput!): Deployment
 	createStatefulSet(namespace: String!, StatefulSet: StatefulSetInput!): StatefulSet
@@ -291,11 +299,22 @@ type User {
 	name: String!
 	username: String!
 	thesis: [Thesis!]
-	role: Role!
+	role: Role
+}
+
+input UserInput {
+	username:			String!
+	password:			String!
+	name:				String
 }
 
 type Role {
 	id: String!
 	name: String!
 	users: [User!]
+}
+
+type AuthPayload {
+	token: String!
+	user: User!
 }

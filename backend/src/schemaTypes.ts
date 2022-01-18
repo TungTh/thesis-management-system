@@ -13,12 +13,45 @@ export interface GQLQuery {
 }
 
 export interface GQLMutation {
+  signup: GQLAuthPayload;
+  login: GQLAuthPayload;
+  logout: boolean;
+  refreshJWT: GQLAuthPayload;
   createNamespace?: GQLNamespace;
   createDeployment?: GQLDeployment;
   createStatefulSet?: GQLStatefulSet;
   createService?: GQLService;
   createConfigMap?: GQLConfigMap;
   createSecret?: GQLSecret;
+}
+
+export interface GQLUserInput {
+  username: string;
+  password: string;
+  name?: string;
+}
+
+export interface GQLAuthPayload {
+  token: string;
+  user: GQLUser;
+}
+
+export interface GQLUser {
+  name: string;
+  username: string;
+  thesis?: Array<GQLThesis>;
+  role?: GQLRole;
+}
+
+export interface GQLThesis {
+  title: string;
+  studentName: string;
+  supervisorName: string;
+  summary?: string;
+  report?: string;
+  namespace: GQLNamespace;
+  user: GQLUser;
+  tags?: Array<GQLThesisTag>;
 }
 
 export interface GQLNamespace {
@@ -130,7 +163,7 @@ export interface GQLSecret {
 
 export interface GQLService {
   meta: GQLMetadata;
-  dplName: string;
+  dplName?: string;
   type: GQLServiceType;
   ports?: Array<GQLServicePort>;
   yaml: string;
@@ -149,6 +182,17 @@ export interface GQLServicePort {
   port: number;
   targetPort?: number;
   nodePort?: number;
+}
+
+export interface GQLThesisTag {
+  name: string;
+  thesis?: Array<GQLThesis>;
+}
+
+export interface GQLRole {
+  id: string;
+  name: string;
+  users?: Array<GQLUser>;
 }
 
 export interface GQLDeploymentInput {
@@ -272,34 +316,5 @@ export interface GQLPersistentVolumeClaim {
   volumeMode: string;
   accessMode: Array<GQLVolumeAccessMode>;
   resources?: GQLResourceRequirements;
-}
-
-export interface GQLThesis {
-  title: string;
-  studentName: string;
-  supervisorName: string;
-  summary?: string;
-  report?: string;
-  namespace: GQLNamespace;
-  user: GQLUser;
-  tags?: Array<GQLThesisTag>;
-}
-
-export interface GQLUser {
-  name: string;
-  username: string;
-  thesis?: Array<GQLThesis>;
-  role: GQLRole;
-}
-
-export interface GQLRole {
-  id: string;
-  name: string;
-  users?: Array<GQLUser>;
-}
-
-export interface GQLThesisTag {
-  name: string;
-  thesis?: Array<GQLThesis>;
 }
 
