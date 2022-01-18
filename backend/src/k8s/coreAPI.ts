@@ -115,7 +115,7 @@ export const getServiceInfo = async (namespace: string, name: string): Promise<G
 		name: servicePort.name,
 		protocol: servicePort.protocol,
 		port: servicePort.port,
-		targetPort: servicePort.targetPort.toString(),
+		targetPort: parseInt(servicePort.targetPort.toString()),
 		nodePort: servicePort.nodePort,
 	})
 
@@ -146,14 +146,13 @@ export const createService = async (namespace: string, service: GQLServiceInput)
 			selector: {
 				app: service.dplName,
 			},
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore: targetPort is not defined in type
 			ports: service.ports.map(port => <k8s.V1ServicePort> {
 				name: port.name,
 				protocol: port.protocol,
 				port: port.port,
-				targetPort: {
-					strVal: port.targetPort,
-					type: 'IntOrString'
-				},
+				targetPort: port.targetPort,
 				nodePort: port.nodePort,
 			}),
 			type: service.type,
@@ -166,7 +165,7 @@ export const createService = async (namespace: string, service: GQLServiceInput)
 		throw new Error(res.response.statusMessage);
 	}
 
-	return null;
+	return getServiceInfo(namespace, service.name);
 }
 
 export const getSecretMetasInNamespace = async (namespace: string): Promise<GQLMetadata[]> => {

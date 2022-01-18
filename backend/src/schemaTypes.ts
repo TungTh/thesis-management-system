@@ -147,7 +147,7 @@ export interface GQLServicePort {
   name?: string;
   protocol: GQLPortProtocol;
   port: number;
-  targetPort?: string;
+  targetPort?: number;
   nodePort?: number;
 }
 
@@ -226,7 +226,7 @@ export interface GQLServicePortInput {
   name?: string;
   protocol: GQLPortProtocol;
   port: number;
-  targetPort?: string;
+  targetPort?: number;
   nodePort?: number;
 }
 

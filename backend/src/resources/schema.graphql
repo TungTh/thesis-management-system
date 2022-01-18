@@ -210,7 +210,7 @@ type ServicePort {
 	name: String
 	protocol: PortProtocol!
 	port: Int!
-	targetPort: String
+	targetPort: Int
 	nodePort: Int
 }
 
@@ -218,7 +218,7 @@ input ServicePortInput {
 	name: String
 	protocol: PortProtocol!
 	port: Int!
-	targetPort: String
+	targetPort: Int 
 	nodePort: Int
 }
 
