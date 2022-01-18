@@ -9,6 +9,9 @@ import * as Namespace from './resolvers/Namespace';
 import * as Pod from './resolvers/Pod';
 import * as Query from './resolvers/Query';
 import * as StatefulSet from './resolvers/StatefulSet';
+import * as Service from './resolvers/Service';
+import * as Secret from './resolvers/Secret';
+import * as ConfigMap from './resolvers/ConfigMap';
 
 const { ApolloServer } = Apollo;
 const { PrismaClient } = Prisma;
@@ -21,6 +24,9 @@ const resolvers = {
 	Pod,
 	Deployment,
 	StatefulSet,
+	Service,
+	Secret,
+	ConfigMap
 }
 
 const __dirname = path.resolve();
