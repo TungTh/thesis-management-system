@@ -1,8 +1,120 @@
 import { PrismaClient } from "@prisma/client";
+import * as bcrypt from 'bcryptjs';
 import * as yaml from 'js-yaml';
+import * as jwt from 'jsonwebtoken';
+import * as uuid from 'uuid';
 import { createDeployment as createDeploymentAPI, createStatefulSet as createStatefulSetAPI, getDeploymentMetasInNamespace, getStatefulSetMetasInNamespace } from "../k8s/appAPI";
 import { createConfigMap as createConfigMapAPI, createNamespace as createNamespaceAPI, createSecret as createSecretAPI, createService as createServiceAPI, getConfigMapMetasInNamespace, getNamespaces, getSecretMetasInNamespace, getServiceMetasInNamespace } from "../k8s/coreAPI";
-import { GQLConfigMap, GQLConfigMapInput, GQLDeployment, GQLDeploymentInput, GQLMutation, GQLNamespace, GQLSecret, GQLSecretInput, GQLService, GQLServiceInput, GQLStatefulSetInput } from "../schemaTypes";
+import { GQLAuthPayload, GQLConfigMap, GQLConfigMapInput, GQLDeployment, GQLDeploymentInput, GQLMutation, GQLNamespace, GQLSecret, GQLSecretInput, GQLService, GQLServiceInput, GQLStatefulSetInput, GQLUserInput } from "../schemaTypes";
+import { JWT_EXPIRY, REFRESH_TOKEN_EXPIRY } from "../util/UtilConstant";
+
+export const signup = async (parent, args: {user: GQLUserInput}, context: {res: any, prisma: PrismaClient}, info): Promise<GQLAuthPayload> => {
+	if (!args.user.username || !args.user.password) {
+		throw new Error('Username and password required');
+	}
+
+	let user = await context.prisma.user.findUnique({
+		where: {
+			username: args.user.username
+		}
+	});
+
+	if (user) {
+		throw new Error('Username already exists');
+	}
+
+	const password = await bcrypt.hash(args.user.password, 10);
+	const refreshToken = uuid.v4();
+
+	user = await context.prisma.user.create({
+		data: {
+			username: args.user.username,
+			password: password,
+			name: args.user.name,
+			refreshToken: refreshToken,
+			roleId: "0"
+		}
+	});
+
+	context.res.cookie('refresh_token', refreshToken, { 
+		httpOnly: true, 
+		maxAge: REFRESH_TOKEN_EXPIRY * 60 * 1000,
+		secure: true,
+		sameSite: 'None' 
+	})
+
+	return {
+		token: jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRY * 60 * 1000 }),
+		user: user
+	}
+}
+
+export const login = async (parent, args: {username: string, password: string}, context: {res: any, prisma: PrismaClient}, info): Promise<GQLAuthPayload> => {
+	if (!args.username || !args.password) {
+		throw new Error('Username and password required');
+	}
+
+	const user = await context.prisma.user.findUnique({
+		where: {
+			username: args.username
+		}
+	});
+
+	if (!user) {
+		throw new Error('Invalid username or password! Please try again.');
+	}
+
+	const valid = await bcrypt.compare(args.password, user.password);
+
+	if (!valid) {
+		throw new Error('Invalid username or password! Please try again.');
+	}
+
+	const refreshToken = uuid.v4();
+
+	await context.prisma.user.update({
+		where: {
+			id: user.id
+		},
+		data: {
+			refreshToken: refreshToken
+		}
+	});
+
+	context.res.cookie('refresh_token', refreshToken, {
+		httpOnly: true,
+		maxAge: REFRESH_TOKEN_EXPIRY * 60 * 1000,
+		secure: true,
+		sameSite: 'None'
+	})
+
+	return {
+		token: jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRY * 60 * 1000 }),
+		user: user
+	}
+}
+
+export const logout = async (parent, args, context: {res: any, prisma: PrismaClient}, info): Promise<boolean> => {
+	context.res.clearCookie('refresh_token');
+	return true;
+}
+
+export const refreshJWT = async (parent, args: {refreshToken: string}, context: {res: any, prisma: PrismaClient}, info): Promise<GQLAuthPayload> => {
+	const user = await context.prisma.user.findUnique({
+		where: {
+			refreshToken: args.refreshToken
+		}
+	});
+
+	if (!user) {
+		throw new Error('Invalid refresh token');
+	}
+
+	return {
+		token: jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRY * 60 * 1000 }),
+		user: user
+	}
+}
 
 export const createNamespace = async (parent: GQLMutation, args: { name: string }, context: { prisma: PrismaClient}): Promise<GQLNamespace> => {
 	const existingNamespaces = await getNamespaces();

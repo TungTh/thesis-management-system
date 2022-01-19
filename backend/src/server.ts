@@ -1,6 +1,7 @@
 import Prisma from '@prisma/client';
 import Apollo from 'apollo-server-express';
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as Deployment from './resolvers/Deployment';
@@ -39,6 +40,14 @@ const server = new ApolloServer({
 			...req,
 			...res,
 			prisma,
+			userId:
+				req && req.headers.authorization
+					? getUserId(req)
+					: null,
+			roleId:
+				req && req.headers.authorization
+					? getUserRoleId(req)
+					: null
 		}
 	}
 });
@@ -46,10 +55,26 @@ const server = new ApolloServer({
 const app = express();
 app.disable('x-powered-by');
 
+app.use(cookieParser())
+
 const PORT = process.env.PORT || 4000;
 
-server.applyMiddleware({app});
+const corsOptions = {
+	origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000',
+	credentials: true,
+	allowedHeaders: ['Content-Type', 'Authorization']
+}
+
+server.applyMiddleware({app, cors: corsOptions});
 
 app.listen(PORT, () => {
 	console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`)
 })
+function getUserId(req: express.Request<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>>) {
+	throw new Error('Function not implemented.');
+}
+
+function getUserRoleId(req: express.Request<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>>) {
+	throw new Error('Function not implemented.');
+}
+

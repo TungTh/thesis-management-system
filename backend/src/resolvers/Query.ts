@@ -1,11 +1,41 @@
-import { GQLConfigMap, GQLDeployment, GQLNamespace, GQLPod, GQLSecret, GQLService, GQLStatefulSet } from "../schemaTypes";
+import { PrismaClient } from "@prisma/client";
 import * as appAPI from "../k8s/appAPI";
 import * as coreAPI from "../k8s/coreAPI";
+import { GQLConfigMap, GQLDeployment, GQLNamespace, GQLPod, GQLSecret, GQLService, GQLStatefulSet, GQLUser } from "../schemaTypes";
 
 interface NamespacedObject {
 	namespace: string,
 	[key: string]: string,
 }
+
+export const allUsers = async (parent, args, context: {prisma: PrismaClient}, info): Promise<Array<GQLUser>> => {
+	const users = await context.prisma.user.findMany({
+		orderBy: {
+			name: "asc"
+		}
+	});
+	
+	return users.map(user => {
+		return {
+			name: user.name,
+			username: user.username,
+		}
+	});
+};
+
+export const getUserById = async (parent, args, context: {prisma: PrismaClient}, info): Promise<GQLUser> => {
+	const user = await context.prisma.user.findUnique({
+		where: {
+			id: args.id
+		}
+	});
+
+	return {
+		name: user.name,
+		username: user.username,
+	}
+}
+
 
 export const allNamespaces = async (parent, args, context, info): Promise<GQLNamespace[]> => {
 	return await coreAPI.getNamespaces();

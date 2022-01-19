@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: qnc-server-configmap
-data:
-  database-url: postgresql-service
