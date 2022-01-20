@@ -17,12 +17,21 @@ export interface GQLMutation {
   login: GQLAuthPayload;
   logout: boolean;
   refreshJWT: GQLAuthPayload;
+  createThesis: GQLThesis;
+  updateThesis: GQLThesis;
+  deleteThesis: boolean;
   createNamespace?: GQLNamespace;
   createDeployment?: GQLDeployment;
   createStatefulSet?: GQLStatefulSet;
   createService?: GQLService;
   createConfigMap?: GQLConfigMap;
   createSecret?: GQLSecret;
+  deleteNamespace?: boolean;
+  deleteDeployment?: boolean;
+  deleteStatefulSet?: boolean;
+  deleteService?: boolean;
+  deleteConfigMap?: boolean;
+  deleteSecret?: boolean;
 }
 
 export interface GQLUserInput {
@@ -37,13 +46,15 @@ export interface GQLAuthPayload {
 }
 
 export interface GQLUser {
+  id: string;
   name: string;
   username: string;
-  thesis?: Array<GQLThesis>;
+  thesis?: GQLThesis;
   role?: GQLRole;
 }
 
 export interface GQLThesis {
+  id: string;
   title: string;
   studentName: string;
   supervisorName: string;
@@ -193,6 +204,22 @@ export interface GQLRole {
   id: string;
   name: string;
   users?: Array<GQLUser>;
+}
+
+export interface GQLThesisInput {
+  id: string;
+  title: string;
+  studentName: string;
+  supervisorName: string;
+  summary?: string;
+  report?: string;
+  namespace: string;
+  user: string;
+  tags?: Array<GQLThesisTagInput>;
+}
+
+export interface GQLThesisTagInput {
+  name: string;
 }
 
 export interface GQLDeploymentInput {

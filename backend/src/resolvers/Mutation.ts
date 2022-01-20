@@ -1,12 +1,12 @@
 import { PrismaClient } from "@prisma/client";
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import * as yaml from 'js-yaml';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import * as uuid from 'uuid';
 import { createDeployment as createDeploymentAPI, createStatefulSet as createStatefulSetAPI, getDeploymentMetasInNamespace, getStatefulSetMetasInNamespace } from "../k8s/appAPI";
 import { createConfigMap as createConfigMapAPI, createNamespace as createNamespaceAPI, createSecret as createSecretAPI, createService as createServiceAPI, getConfigMapMetasInNamespace, getNamespaces, getSecretMetasInNamespace, getServiceMetasInNamespace } from "../k8s/coreAPI";
 import { GQLAuthPayload, GQLConfigMap, GQLConfigMapInput, GQLDeployment, GQLDeploymentInput, GQLMutation, GQLNamespace, GQLSecret, GQLSecretInput, GQLService, GQLServiceInput, GQLStatefulSetInput, GQLUserInput } from "../schemaTypes";
-import { JWT_EXPIRY, REFRESH_TOKEN_EXPIRY } from "../util/UtilConstant";
+import { JWT_EXPIRY, JWT_SECRET, REFRESH_TOKEN_EXPIRY } from "../util/UtilConstant";
 
 export const signup = async (parent, args: {user: GQLUserInput}, context: {res: any, prisma: PrismaClient}, info): Promise<GQLAuthPayload> => {
 	if (!args.user.username || !args.user.password) {
@@ -44,7 +44,7 @@ export const signup = async (parent, args: {user: GQLUserInput}, context: {res: 
 	})
 
 	return {
-		token: jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRY * 60 * 1000 }),
+		token: jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRY * 60 * 1000 }),
 		user: user
 	}
 }
@@ -89,7 +89,7 @@ export const login = async (parent, args: {username: string, password: string}, 
 	})
 
 	return {
-		token: jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRY * 60 * 1000 }),
+		token: jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRY * 60 * 1000 }),
 		user: user
 	}
 }
@@ -99,10 +99,18 @@ export const logout = async (parent, args, context: {res: any, prisma: PrismaCli
 	return true;
 }
 
-export const refreshJWT = async (parent, args: {refreshToken: string}, context: {res: any, prisma: PrismaClient}, info): Promise<GQLAuthPayload> => {
+export const refreshJWT = async (parent, args, context: {req: any, res: any, prisma: PrismaClient, userId: string}, info): Promise<GQLAuthPayload> => {
+	const cookies = context.req.cookies
+	if (!cookies)
+		throw new Error('Cookies not found! Please login!')
+
+	const refreshToken = context.req.cookies['refresh_token']
+	if (!refreshToken)
+		throw new Error('No refresh token found! Please login!')
+
 	const user = await context.prisma.user.findUnique({
 		where: {
-			refreshToken: args.refreshToken
+			refreshToken: refreshToken
 		}
 	});
 
@@ -111,12 +119,28 @@ export const refreshJWT = async (parent, args: {refreshToken: string}, context: 
 	}
 
 	return {
-		token: jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRY * 60 * 1000 }),
+		token: jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRY * 60 * 1000 }),
 		user: user
 	}
 }
 
-export const createNamespace = async (parent: GQLMutation, args: { name: string }, context: { prisma: PrismaClient}): Promise<GQLNamespace> => {
+// export const createThesis = 
+
+export const createNamespace = async (parent: GQLMutation, args: { name: string }, context: { prisma: PrismaClient, userId: string}): Promise<GQLNamespace> => {
+	const user = await context.prisma.user.findUnique({
+		where: {
+			id: context.userId
+		}, 
+		include: {
+			role: true
+		}
+	});
+
+	if (!user || user.role.name !== "Admin") {
+		throw new Error('You are not authorized to create a namespace!');
+	}
+
+
 	const existingNamespaces = await getNamespaces();
 
 	for (const ns of existingNamespaces) {
@@ -138,7 +162,11 @@ export const createNamespace = async (parent: GQLMutation, args: { name: string 
 	return null;
 }
 
-export const createDeployment = async (parent: GQLMutation, args: { namespace: string, deployment: GQLDeploymentInput }, context: { prisma: PrismaClient }): Promise<GQLDeployment> => {
+export const createDeployment = async (parent: GQLMutation, args: { namespace: string, deployment: GQLDeploymentInput }, context: { prisma: PrismaClient, userId: string }): Promise<GQLDeployment> => {
+	if (!userOwnNamespace(context, args.namespace)) {
+		throw new Error('You are not authorized to create a deployment in this namespace!');
+	}
+
 	const existingDeployments = await getDeploymentMetasInNamespace(args.namespace);
 
 	for (const dpl of existingDeployments) {
@@ -154,7 +182,11 @@ export const createDeployment = async (parent: GQLMutation, args: { namespace: s
 	return response;
 }
 
-export const createStatefulSet = async (parent: GQLMutation, args: { namespace: string, statefulSet: GQLStatefulSetInput }, context: { prisma: PrismaClient }): Promise<GQLDeployment> => {
+export const createStatefulSet = async (parent: GQLMutation, args: { namespace: string, statefulSet: GQLStatefulSetInput }, context: { prisma: PrismaClient, userId: string }): Promise<GQLDeployment> => {
+	if (!userOwnNamespace(context, args.namespace)) {
+		throw new Error('You are not authorized to create a stateful set in this namespace!');
+	}
+
 	const existingStatefulSets = await getStatefulSetMetasInNamespace(args.namespace);
 
 	for (const sts of existingStatefulSets) {
@@ -170,7 +202,11 @@ export const createStatefulSet = async (parent: GQLMutation, args: { namespace: 
 	return response;
 }
 
-export const createService = async (parent: GQLMutation, args: { namespace: string, service: GQLServiceInput }, context: { prisma: PrismaClient }): Promise<GQLService> => {
+export const createService = async (parent: GQLMutation, args: { namespace: string, service: GQLServiceInput }, context: { prisma: PrismaClient, userId: string }): Promise<GQLService> => {
+	if (!userOwnNamespace(context, args.namespace)) {
+		throw new Error('You are not authorized to create a service in this namespace!');
+	}
+
 	const existingServices = await getServiceMetasInNamespace(args.namespace);
 
 	for (const svc of existingServices) {
@@ -186,7 +222,11 @@ export const createService = async (parent: GQLMutation, args: { namespace: stri
 	return response;
 }
 
-export const createSecret = async (parent: GQLMutation, args: { namespace: string, secret: GQLSecretInput }, context: { prisma: PrismaClient }): Promise<GQLSecret> => {
+export const createSecret = async (parent: GQLMutation, args: { namespace: string, secret: GQLSecretInput }, context: { prisma: PrismaClient, userId: string }): Promise<GQLSecret> => {
+	if (!userOwnNamespace(context, args.namespace)) {
+		throw new Error('You are not authorized to create a secret in this namespace!');
+	}
+
 	const existingSecrets = await getSecretMetasInNamespace(args.namespace);
 
 	for (const secret of existingSecrets) {
@@ -202,7 +242,11 @@ export const createSecret = async (parent: GQLMutation, args: { namespace: strin
 	return response;
 }
 
-export const createConfigMap = async (parent: GQLMutation, args: { namespace: string, configMap: GQLConfigMapInput }, context: { prisma: PrismaClient }): Promise<GQLConfigMap> => {
+export const createConfigMap = async (parent: GQLMutation, args: { namespace: string, configMap: GQLConfigMapInput }, context: { prisma: PrismaClient, userId: string }): Promise<GQLConfigMap> => {
+	if (!userOwnNamespace(context, args.namespace)) {
+		throw new Error('You are not authorized to create a config map in this namespace!');
+	}
+
 	const existingConfigMaps = await getConfigMapMetasInNamespace(args.namespace);
 
 	for (const cm of existingConfigMaps) {
@@ -216,6 +260,48 @@ export const createConfigMap = async (parent: GQLMutation, args: { namespace: st
 	await storeYamlFile(context, {namespace: args.namespace, name: args.configMap.name}, response.yaml);
 
 	return response;
+}
+
+async function userOwnNamespace(context:{ prisma: PrismaClient, userId:	string }, namespace: string): Promise<boolean> {
+	const ns = await context.prisma.namespace.findUnique({
+		where: {
+			name: namespace
+		}
+	});
+
+	if (!ns) {
+		return false;
+	}
+
+	const user = await context.prisma.user.findUnique({
+		where: {
+			id: context.userId
+		},
+		include: {
+			role: {
+				select: {
+					name: true
+				}
+			}
+		}
+	});
+
+	if (!user) {
+		return false;
+	}
+
+	if (user.role.name === 'Admin') {
+		return true;
+	}
+
+	const thesis = await context.prisma.thesis.findUnique({
+		where: {
+			id: context.userId,
+			namespaceId: ns.id
+		}
+	});
+
+	return !!thesis;
 }
 
 async function storeYamlFile(context: { prisma: PrismaClient; }, args: { namespace: string; name: string; }, yamlString: string) {

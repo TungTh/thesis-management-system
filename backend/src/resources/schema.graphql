@@ -1,6 +1,9 @@
 type Query {
 	allUsers: [User!]!
-	getUserById(id: Int!): User
+	getUserById(id: String!): User
+
+	allTheses: [Thesis!]!
+	getThesisById(id: String!): Thesis
 
 	allNamespaces: [Namespace!]
 	allPods(namespace: String!): [Pod!]
@@ -16,6 +19,10 @@ type Mutation {
 	login(username: String!, password: String!): AuthPayload!
 	logout:	Boolean!
 	refreshJWT:	AuthPayload!
+
+	createThesis(thesis: ThesisInput!): Thesis!
+	updateThesis(id: String!, thesis: ThesisInput!): Thesis!
+	deleteThesis(id: String!): Boolean!
 	
 	createNamespace(name: String!): Namespace
 	createDeployment(namespace: String!, deployment: DeploymentInput!): Deployment
@@ -23,6 +30,13 @@ type Mutation {
 	createService(namespace: String!, service: ServiceInput!): Service
 	createConfigMap(namespace: String!, configMap: ConfigMapInput!): ConfigMap
 	createSecret(namespace: String!, secret: SecretInput!): Secret
+
+	deleteNamespace(name: String!): Boolean
+	deleteDeployment(namespace: String!, name: String!): Boolean
+	deleteStatefulSet(namespace: String!, name: String!): Boolean
+	deleteService(namespace: String!, name: String!): Boolean
+	deleteConfigMap(namespace: String!, name: String!): Boolean
+	deleteSecret(namespace: String!, name: String!): Boolean
 }
 
 type Namespace {
@@ -280,6 +294,7 @@ input ResourceInput {
 }
 
 type Thesis {
+	id: String!
 	title: String!
 	studentName: String!
 	supervisorName: String!
@@ -290,15 +305,32 @@ type Thesis {
 	tags: [ThesisTag!]
 }
 
+input ThesisInput {
+	id: String!
+	title: String!
+	studentName: String!
+	supervisorName: String!
+	summary: String
+	report: String
+	namespace: String!
+	user: String!
+	tags: [ThesisTagInput!]
+}
+
 type ThesisTag {
 	name: String!
 	thesis: [Thesis!]
 }
 
+input ThesisTagInput {
+	name: String!
+}
+
 type User {
+	id: String!
 	name: String!
 	username: String!
-	thesis: [Thesis!]
+	thesis: Thesis
 	role: Role
 }
 

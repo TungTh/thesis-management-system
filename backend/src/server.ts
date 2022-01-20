@@ -1,18 +1,20 @@
 import Prisma from '@prisma/client';
 import Apollo from 'apollo-server-express';
-import express from 'express';
 import cookieParser from 'cookie-parser';
+import express from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as ConfigMap from './resolvers/ConfigMap';
 import * as Deployment from './resolvers/Deployment';
 import * as Mutation from './resolvers/Mutation';
 import * as Namespace from './resolvers/Namespace';
 import * as Pod from './resolvers/Pod';
 import * as Query from './resolvers/Query';
-import * as StatefulSet from './resolvers/StatefulSet';
-import * as Service from './resolvers/Service';
 import * as Secret from './resolvers/Secret';
-import * as ConfigMap from './resolvers/ConfigMap';
+import * as Service from './resolvers/Service';
+import * as StatefulSet from './resolvers/StatefulSet';
+import * as User from './resolvers/User';
+import { getUserId, getUserRoleId } from './util/AuthUtils';
 
 const { ApolloServer } = Apollo;
 const { PrismaClient } = Prisma;
@@ -27,7 +29,8 @@ const resolvers = {
 	StatefulSet,
 	Service,
 	Secret,
-	ConfigMap
+	ConfigMap,
+	User
 }
 
 const __dirname = path.resolve();
@@ -70,11 +73,4 @@ server.applyMiddleware({app, cors: corsOptions});
 app.listen(PORT, () => {
 	console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`)
 })
-function getUserId(req: express.Request<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>>) {
-	throw new Error('Function not implemented.');
-}
-
-function getUserRoleId(req: express.Request<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>>) {
-	throw new Error('Function not implemented.');
-}
 

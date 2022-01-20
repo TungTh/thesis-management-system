@@ -1,12 +1,11 @@
 import jwt from 'jsonwebtoken';
-
-const APP_SECRET = process.env.JWT_SECRET ? process.env.JWT_SECRET : "SMOOTH CRIMINAL H3H3";
+import { JWT_SECRET } from './UtilConstant';
 
 function getTokenPayload(token) {
-    return jwt.verify(token, APP_SECRET);
+    return jwt.verify(token, JWT_SECRET);
 }
 
-function getUserId(req, authToken) {
+export function getUserId(req?, authToken?) {
     if (req) {
         const authHeader = req.headers.authorization;
         if (authHeader) {
@@ -29,7 +28,7 @@ function getUserId(req, authToken) {
     throw new Error('Not authenticated');
 }
 
-function getUserRoleId(req, authToken) {
+export function getUserRoleId(req?, authToken?) {
     if (req) {
         const authHeader = req.headers.authorization;
         if (authHeader) {
@@ -50,10 +49,4 @@ function getUserRoleId(req, authToken) {
     }
 
     throw new Error('Not authenticated');
-}
-
-module.exports = {
-    APP_SECRET,
-    getUserId,
-    getUserRoleId,
 }

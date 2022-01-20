@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import * as appAPI from "../k8s/appAPI";
 import * as coreAPI from "../k8s/coreAPI";
-import { GQLConfigMap, GQLDeployment, GQLNamespace, GQLPod, GQLSecret, GQLService, GQLStatefulSet, GQLUser } from "../schemaTypes";
+import { GQLConfigMap, GQLDeployment, GQLNamespace, GQLPod, GQLSecret, GQLService, GQLStatefulSet, GQLThesis, GQLUser } from "../schemaTypes";
 
 interface NamespacedObject {
 	namespace: string,
@@ -17,13 +17,14 @@ export const allUsers = async (parent, args, context: {prisma: PrismaClient}, in
 	
 	return users.map(user => {
 		return {
+			id: user.id,
 			name: user.name,
 			username: user.username,
 		}
 	});
 };
 
-export const getUserById = async (parent, args, context: {prisma: PrismaClient}, info): Promise<GQLUser> => {
+export const getUserById = async (parent: any, args: { id: string; }, context: {prisma: PrismaClient}, info: any): Promise<GQLUser> => {
 	const user = await context.prisma.user.findUnique({
 		where: {
 			id: args.id
@@ -31,11 +32,91 @@ export const getUserById = async (parent, args, context: {prisma: PrismaClient},
 	});
 
 	return {
+		id: user.id,
 		name: user.name,
 		username: user.username,
 	}
 }
 
+export const allTheses = async (parent, args, context: {prisma: PrismaClient}, info): Promise<Array<GQLThesis>> => {
+	const theses = await context.prisma.thesis.findMany({
+		orderBy: {
+			title: "asc"
+		},
+		include: {
+			User: true,
+			tags: {
+				include: {
+					tag: true
+				}
+			},
+			Namespace: true
+		}	
+	});
+
+	return theses.map(thesis => {
+		return {
+			id: thesis.id,
+			title: thesis.title,
+			studentName: thesis.studentName,
+			supervisorName: thesis.supervisorName,
+			summary: thesis.summary,
+			...(thesis.report && {report: thesis.report.toString('base64')}),
+			namespace: {
+				name: thesis.Namespace.name,
+			},
+			user: {
+				id: thesis.userId,
+				name: thesis.User.name,
+				username: thesis.User.username,
+			},
+			tags: thesis.tags.map(tag => {
+				return {
+					name: tag.tag.name,
+				}
+			})
+		}
+	});
+}
+
+export const getThesisById = async (parent: any, args: { id: string; }, context: {prisma: PrismaClient}, info: any): Promise<GQLThesis> => {
+	const thesis = await context.prisma.thesis.findUnique({
+		where: {
+			id: args.id
+		},
+		include: {
+			User: true,
+			tags: {
+				include: {
+					tag: true
+				}
+			},
+			Namespace: true
+		}
+	});
+
+	return {
+		id: thesis.id,
+		title: thesis.title,
+		studentName: thesis.studentName,
+		supervisorName: thesis.supervisorName,
+		summary: thesis.summary,
+		...(thesis.report && {report: thesis.report.toString('base64')}),
+		namespace: {
+			name: thesis.Namespace.name,
+		},
+		user: {
+			id: thesis.userId,
+			name: thesis.User.name,
+			username: thesis.User.username,
+		},
+		tags: thesis.tags.map(tag => {
+			return {
+				name: tag.tag.name,
+			}
+		})
+	}
+}
 
 export const allNamespaces = async (parent, args, context, info): Promise<GQLNamespace[]> => {
 	return await coreAPI.getNamespaces();
