@@ -1,12 +1,9 @@
-import React from 'react';
-
-import makeStyles from "@material-ui/core/styles/makeStyles";
+import Avatar from "@material-ui/core/Avatar";
 import Container from "@material-ui/core/Container";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import Avatar from "@material-ui/core/Avatar";
+import makeStyles from "@material-ui/core/styles/makeStyles";
 import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
-
-
+import React from 'react';
 import { TextWithLink, TitleText } from "../../presentational-components/Text";
 
 
@@ -34,19 +31,16 @@ export default function SignUpPage() {
 		<React.Fragment>
 			<Container maxWidth="xs">
 				<CssBaseline />
-				{/* REMOVE IF BACKEND FOR AUTHENTICATION IS FINISHED */}
-				{/* REPLACE WITH <SignUp /> COMPONENT*/}
 				<div className={classes.paper}>
 					<Avatar className={classes.avatar}>
 						<SupervisorAccountIcon />
 					</Avatar>
-					<TitleText value="Please contact an administrator to create your namespace" fontSize="18px" />
+					<TitleText value="Please contact an administrator to create your account" fontSize="18px" />
 					<TextWithLink
 						value="Back to login"
 						align="right"
 						to="/" />
 				</div>
-				{/* END REMOVE */}
 			</Container>
 		</React.Fragment>
 	)

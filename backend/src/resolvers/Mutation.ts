@@ -327,7 +327,9 @@ export const createThesis = async (parent: GQLMutation, args: { thesis: GQLThesi
 	const thesis = await context.prisma.thesis.create({
 		data: {
 			studentName: args.thesis.studentName,
+			studentID: args.thesis.studentID,
 			supervisorName: args.thesis.supervisorName,
+			semester: args.thesis.semester,
 			title: args.thesis.title,
 			summary: args.thesis.summary,
 			report: Buffer.from(args.thesis.report, 'base64'),

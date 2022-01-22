@@ -36,6 +36,15 @@ const theme = createTheme({
     action: {
       hover: "#cccccc",
     },
+    background: {
+      default: "#e5e5e5",
+      paper: "#ffffff",
+    },
+    text: {
+      primary: "#000000",
+      secondary: "#858585",
+      hint: "#b3b3b3",
+    },
   },
 });
 
@@ -93,7 +102,10 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <ApolloProvider client={client}>
         <AuthorizationContext.Provider
-          value={[authorizationData, setAuthorizationData]}
+          value={{
+            ...authorizationData,
+            setAuthorization: setAuthorizationData,
+          }}
         >
           <BrowserRouter basename="/ezk8s">
             <Switch>

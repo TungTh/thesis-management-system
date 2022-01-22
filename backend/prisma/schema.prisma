@@ -46,7 +46,9 @@ model Namespace {
 model Thesis {
   id             String        @id @default(cuid())
   studentName    String
+  studentID      String        @unique
   supervisorName String
+  semester       String
   title          String
   summary        String?
   report         Bytes?

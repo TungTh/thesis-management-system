@@ -320,7 +320,9 @@ type Thesis {
 	id: String!
 	title: String!
 	studentName: String!
+	studentID: String!
 	supervisorName: String!
+	semester: String!
 	summary: String
 	report: String
 	namespace: Namespace!
@@ -331,7 +333,9 @@ type Thesis {
 input ThesisInput {
 	title: String!
 	studentName: String!
+	studentID: String!
 	supervisorName: String!
+	semester: String!
 	summary: String
 	report: String
 	namespace: String!

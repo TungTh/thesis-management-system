@@ -59,7 +59,9 @@ export const allTheses = async (parent, args, context: {prisma: PrismaClient}, i
 			id: thesis.id,
 			title: thesis.title,
 			studentName: thesis.studentName,
+			studentID: thesis.studentID,
 			supervisorName: thesis.supervisorName,
+			semester: thesis.semester,
 			summary: thesis.summary,
 			...(thesis.report && {report: thesis.report.toString('base64')}),
 			namespace: {
@@ -99,7 +101,9 @@ export const getThesisById = async (parent: any, args: { id: string; }, context:
 		id: thesis.id,
 		title: thesis.title,
 		studentName: thesis.studentName,
+		studentID: thesis.studentID,
 		supervisorName: thesis.supervisorName,
+		semester: thesis.semester,
 		summary: thesis.summary,
 		...(thesis.report && {report: thesis.report.toString('base64')}),
 		namespace: {

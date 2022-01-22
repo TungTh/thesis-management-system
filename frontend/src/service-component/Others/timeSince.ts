@@ -1,4 +1,4 @@
-export default function timeSince(date) {
+export default function timeSince(date: number) {
 	const seconds = Math.floor((Date.now() - date) / 1000);
 	let interval = 0;
 
