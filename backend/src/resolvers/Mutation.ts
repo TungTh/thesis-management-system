@@ -3,9 +3,9 @@ import bcrypt from 'bcryptjs';
 import * as yaml from 'js-yaml';
 import jwt from 'jsonwebtoken';
 import * as uuid from 'uuid';
-import { createDeployment as createDeploymentAPI, createStatefulSet as createStatefulSetAPI, getDeploymentMetasInNamespace, getStatefulSetMetasInNamespace } from "../k8s/appAPI";
-import { createConfigMap as createConfigMapAPI, createNamespace as createNamespaceAPI, createSecret as createSecretAPI, createService as createServiceAPI, getConfigMapMetasInNamespace, getNamespaces, getSecretMetasInNamespace, getServiceMetasInNamespace } from "../k8s/coreAPI";
-import { GQLAuthPayload, GQLConfigMap, GQLConfigMapInput, GQLDeployment, GQLDeploymentInput, GQLMutation, GQLNamespace, GQLSecret, GQLSecretInput, GQLService, GQLServiceInput, GQLStatefulSetInput, GQLUserInput } from "../schemaTypes";
+import { createDeployment as createDeploymentAPI, createStatefulSet as createStatefulSetAPI, deleteDeployment as deleteDeploymentAPI, deleteStatefulSet as deleteStatefulSetAPI, getDeploymentMetasInNamespace, getStatefulSetMetasInNamespace } from "../k8s/appAPI";
+import { createConfigMap as createConfigMapAPI, createNamespace as createNamespaceAPI, createPersistentVolume as createPersistentVolumeAPI, createPersistentVolumeClaim as createPersistentVolumeClaimAPI, createSecret as createSecretAPI, createService as createServiceAPI, deleteConfigMap as deleteConfigMapAPI, deleteNamespace as deleteNamespaceAPI, deletePersistentVolume as deletePersistentVolumeAPI, deleteSecret as deleteSecretAPI, deleteService as deleteServiceAPI, getConfigMapMetasInNamespace, getNamespaces, getPersistentVolumeClaimMetasInNamespace, getPersistentVolumeMetas, getSecretMetasInNamespace, getServiceMetasInNamespace } from "../k8s/coreAPI";
+import { GQLAuthPayload, GQLConfigMap, GQLConfigMapInput, GQLDeployment, GQLDeploymentInput, GQLMutation, GQLNamespace, GQLPersistentVolume, GQLPersistentVolumeClaim, GQLPersistentVolumeClaimInput, GQLPersistentVolumeInput, GQLSecret, GQLSecretInput, GQLService, GQLServiceInput, GQLStatefulSetInput, GQLThesis, GQLThesisInput, GQLUserInput } from "../schemaTypes";
 import { JWT_EXPIRY, JWT_SECRET, REFRESH_TOKEN_EXPIRY } from "../util/UtilConstant";
 
 export const signup = async (parent, args: {user: GQLUserInput}, context: {res: any, prisma: PrismaClient}, info): Promise<GQLAuthPayload> => {
@@ -123,8 +123,6 @@ export const refreshJWT = async (parent, args, context: {req: any, res: any, pri
 		user: user
 	}
 }
-
-// export const createThesis = 
 
 export const createNamespace = async (parent: GQLMutation, args: { name: string }, context: { prisma: PrismaClient, userId: string}): Promise<GQLNamespace> => {
 	const user = await context.prisma.user.findUnique({
@@ -262,6 +260,376 @@ export const createConfigMap = async (parent: GQLMutation, args: { namespace: st
 	return response;
 }
 
+export const createPersistentVolumeClaim = async (parent: GQLMutation, args: { namespace: string, persistentVolumeClaim: GQLPersistentVolumeClaimInput }, context: { prisma: PrismaClient, userId: string }): Promise<GQLPersistentVolumeClaim> => {
+	if (!userOwnNamespace(context, args.namespace)) {
+		throw new Error('You are not authorized to create a persistent volume claim in this namespace!');
+	}
+
+	const existingPVCs = await getPersistentVolumeClaimMetasInNamespace(args.namespace);
+
+	for (const pvc of existingPVCs) {
+		if (pvc.name === args.persistentVolumeClaim.meta.name) {
+			throw new Error(`PersistentVolumeClaim ${args.persistentVolumeClaim.meta.name} already exists`);
+		}
+	}
+
+	const response = await createPersistentVolumeClaimAPI(args.namespace, args.persistentVolumeClaim);
+
+	return response;
+}
+
+export const createPersistentVolume = async (parent: GQLMutation, args: { persistentVolume: GQLPersistentVolumeInput }, context: { prisma: PrismaClient, userId: string }): Promise<GQLPersistentVolume> => {
+	if (!userIsAdmin(context)) {
+		throw new Error('You are not authorized to create a persistent volume!');
+	}
+	
+	const existingPVs = await getPersistentVolumeMetas();
+
+	for (const pv of existingPVs) {
+		if (pv.name === args.persistentVolume.meta.name) {
+			throw new Error(`PersistentVolume ${args.persistentVolume.meta.name} already exists`);
+		}
+	}
+
+	const response = await createPersistentVolumeAPI(args.persistentVolume);
+
+	return response;
+}
+
+
+export const createThesis = async (parent: GQLMutation, args: { thesis: GQLThesisInput }, context: { prisma: PrismaClient, userId: string }): Promise<GQLThesis> => {
+	const user = await context.prisma.user.findUnique({
+		where: {
+			id: context.userId
+		},
+		include: {
+			thesis: true
+		}
+	});
+
+	if (user.thesis) {
+		throw new Error('You already have a thesis!');
+	}
+
+	const namespace = await context.prisma.namespace.findUnique({
+		where: {
+			name: args.thesis.namespace
+		},
+		include: {
+			thesis: true
+		}
+	});
+
+	if (namespace.thesis) {
+		throw new Error('This namespace already has a thesis!');
+	}
+
+	const thesis = await context.prisma.thesis.create({
+		data: {
+			studentName: args.thesis.studentName,
+			supervisorName: args.thesis.supervisorName,
+			title: args.thesis.title,
+			summary: args.thesis.summary,
+			report: Buffer.from(args.thesis.report, 'base64'),
+			namespace: {
+				connect: {
+					name: args.thesis.namespace
+				}
+			},
+			user: {
+				connect: {
+					id: context.userId
+				}
+			},
+		}, 
+		include: {
+			user: true,
+			namespace: true
+		}
+	});
+
+	const tagIds = await Promise.all(args.thesis.tags.map(async tag => {
+		let t = await context.prisma.thesisTag.findUnique({
+			where: {
+				name: tag.name
+			}
+		});
+		
+		if (!t) {
+			t = await context.prisma.thesisTag.create({
+				data: {
+					name: tag.name
+				}
+			});
+		}
+
+		return t.id;
+	}));
+
+	await context.prisma.tagOnThesis.createMany({
+		data: tagIds.map(id => ({
+			thesisId: thesis.id,
+			tagId: id
+		}))
+	});
+
+	return {
+		...thesis,
+		report: thesis.report && thesis.report.toString('base64')
+	};
+}
+
+export const updateThesis = async (parent: GQLMutation, args: { id: string, thesis: GQLThesisInput }, context: { prisma: PrismaClient, userId: string }): Promise<GQLThesis> => {
+	const thesis = await context.prisma.thesis.findUnique({
+		where: {
+			id: args.id
+		},
+		include: {
+			user: true,
+			namespace: true
+		}
+	});
+
+	if (!thesis) {
+		throw new Error('Thesis not found!');
+	}
+
+	if (thesis.user.id !== context.userId) {
+		throw new Error('You are not authorized to update this thesis!');
+	}
+
+	const namespace = await context.prisma.namespace.findUnique({
+		where: {
+			name: args.thesis.namespace
+		},
+		include: {
+			thesis: true
+		}
+	});
+
+	if (namespace.thesis && namespace.thesis.id !== thesis.id) {
+		throw new Error('This namespace already has a thesis!');
+	}
+
+	const tagIds = await Promise.all(args.thesis.tags.map(async tag => {
+		let t = await context.prisma.thesisTag.findUnique({
+			where: {
+				name: tag.name
+			}
+		});
+
+		if (!t) {
+			t = await context.prisma.thesisTag.create({
+				data: {
+					name: tag.name
+				}
+			});
+		}
+
+		return t.id;
+	}));
+
+	await context.prisma.tagOnThesis.deleteMany({
+		where: {
+			thesisId: thesis.id
+		}
+	});
+
+	await context.prisma.tagOnThesis.createMany({
+		data: tagIds.map(id => ({
+			thesisId: thesis.id,
+			tagId: id
+		}))
+	});
+
+	const updatedThesis = await context.prisma.thesis.update({
+		where: {
+			id: args.id
+		},
+		data: {
+			studentName: args.thesis.studentName,
+			supervisorName: args.thesis.supervisorName,
+			title: args.thesis.title,
+			summary: args.thesis.summary,
+			report: Buffer.from(args.thesis.report, 'base64'),
+			...(namespace.name !== args.thesis.namespace && {namespace: {
+				connect: {
+					name: args.thesis.namespace
+				}
+			}})
+		},
+		include: {
+			user: true,
+			namespace: true
+		}
+	});
+
+	return {
+		...updatedThesis,
+		report: updatedThesis.report && updatedThesis.report.toString('base64')
+	};	
+}
+
+export const deleteThesis = async (parent: GQLMutation, args: { id: string }, context: { prisma: PrismaClient, userId: string }): Promise<boolean> => {
+	const thesis = await context.prisma.thesis.findUnique({
+		where: {
+			id: args.id
+		},
+		include: {
+			user: true,
+			namespace: true
+		}
+	});
+
+	if (!thesis) {
+		throw new Error('Thesis not found!');
+	}
+
+	if (thesis.user.id !== context.userId) {
+		throw new Error('You are not authorized to delete this thesis!');
+	}
+
+	await context.prisma.thesis.delete({
+		where: {
+			id: args.id
+		}
+	});
+
+	return true;
+}
+
+export const deleteNamespace = async (parent: GQLMutation, args: { name: string }, context: { prisma: PrismaClient, userId: string }): Promise<boolean> => {
+	const user = await context.prisma.user.findUnique({
+		where: {
+			id: context.userId
+		},
+		include: {
+			role: true
+		}
+	});
+
+	console.log({user})
+
+	if (!user || user.role.name !== 'Admin') {
+		throw new Error('You are not authorized to delete this namespace!');
+	}
+
+	const namespace = await context.prisma.namespace.findUnique({
+		where: {
+			name: args.name
+		},
+		include: {
+			thesis: true
+		}
+	});
+
+	if (!namespace) {
+		throw new Error('Namespace not found!');
+	}
+
+	if (namespace.thesis) {
+		throw new Error('This namespace has a thesis! Please first remove the thesis!');
+	}
+
+	await deleteNamespaceAPI(args.name);
+
+	const ns = await context.prisma.namespace.delete({
+		where: {
+			name: args.name
+		}
+	});
+
+	if (!ns) {
+		throw new Error('Could not delete namespace! Please contact an administrator!');
+	}
+
+	return true;
+}
+
+export const deleteDeployment = async (parent: GQLMutation, args: { namespace: string, name: string }, context: { prisma: PrismaClient, userId: string }): Promise<boolean> => {
+	if (!userOwnNamespace(context, args.namespace)) {
+		throw new Error('You are not authorized to delete this deployment!');
+	}
+	
+	const deployment = await deleteDeploymentAPI(args.namespace, args.name);
+
+	if (!deployment) {
+		throw new Error('Could not delete deployment! Please contact an administrator!');
+	}
+
+	return true;
+}
+
+export const deleteStatefulSet = async (parent: GQLMutation, args: { namespace: string, name: string }, context: { prisma: PrismaClient, userId: string }): Promise<boolean> => {
+	if (!userOwnNamespace(context, args.namespace)) {
+		throw new Error('You are not authorized to delete this stateful set!');
+	}
+
+	const statefulSet = await deleteStatefulSetAPI(args.namespace, args.name);
+
+	if (!statefulSet) {
+		throw new Error('Could not delete stateful set! Please contact an administrator!');
+	}
+
+	return true;
+}
+
+export const deleteService = async (parent: GQLMutation, args: { namespace: string, name: string }, context: { prisma: PrismaClient, userId: string }): Promise<boolean> => {
+	if (!userOwnNamespace(context, args.namespace)) {
+		throw new Error('You are not authorized to delete this service!');
+	}
+
+	const service = await deleteServiceAPI(args.namespace, args.name);
+
+	if (!service) {
+		throw new Error('Could not delete service! Please contact an administrator!');
+	}
+
+	return true;
+}
+
+export const deleteConfigMap = async (parent: GQLMutation, args: { namespace: string, name: string }, context: { prisma: PrismaClient, userId: string }): Promise<boolean> => {
+	if (!userOwnNamespace(context, args.namespace)) {
+		throw new Error('You are not authorized to delete this config map!');
+	}
+
+	const configMap = await deleteConfigMapAPI(args.namespace, args.name);
+
+	if (!configMap) {
+		throw new Error('Could not delete config map! Please contact an administrator!');
+	}
+
+	return true;
+}
+
+export const deleteSecret = async (parent: GQLMutation, args: { namespace: string, name: string }, context: { prisma: PrismaClient, userId: string }): Promise<boolean> => {
+	if (!userOwnNamespace(context, args.namespace)) {
+		throw new Error('You are not authorized to delete this secret!');
+	}
+
+	const secret = await deleteSecretAPI(args.namespace, args.name);
+
+	if (!secret) {
+		throw new Error('Could not delete secret! Please contact an administrator!');
+	}
+
+	return true;
+}
+
+export const deletePersistentVolume = async (parent: GQLMutation, args: { namespace: string, name: string }, context: { prisma: PrismaClient, userId: string }): Promise<boolean> => {
+	if (!userIsAdmin(context)) {
+		throw new Error('You are not authorized to delete this persistent volume!');
+	}
+
+	const persistentVolume = await deletePersistentVolumeAPI(args.name);
+
+	if (!persistentVolume) {
+		throw new Error('Could not delete persistent volume! Please contact an administrator!');
+	}
+
+	return true;
+}
+
 async function userOwnNamespace(context:{ prisma: PrismaClient, userId:	string }, namespace: string): Promise<boolean> {
 	const ns = await context.prisma.namespace.findUnique({
 		where: {
@@ -269,7 +637,7 @@ async function userOwnNamespace(context:{ prisma: PrismaClient, userId:	string }
 		}
 	});
 
-	if (!ns) {
+	if (!ns || !context.userId) {
 		return false;
 	}
 
@@ -302,6 +670,27 @@ async function userOwnNamespace(context:{ prisma: PrismaClient, userId:	string }
 	});
 
 	return !!thesis;
+}
+
+async function userIsAdmin(context: { prisma: PrismaClient, userId: string }): Promise<boolean> {
+	const user = await context.prisma.user.findUnique({
+		where: {
+			id: context.userId
+		},
+		include: {
+			role: {
+				select: {
+					name: true
+				}
+			}
+		}
+	});
+
+	if (!user) {
+		return false;
+	}
+
+	return user.role.name === 'Admin';
 }
 
 async function storeYamlFile(context: { prisma: PrismaClient; }, args: { namespace: string; name: string; }, yamlString: string) {

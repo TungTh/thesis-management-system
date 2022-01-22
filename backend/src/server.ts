@@ -8,6 +8,8 @@ import * as ConfigMap from './resolvers/ConfigMap';
 import * as Deployment from './resolvers/Deployment';
 import * as Mutation from './resolvers/Mutation';
 import * as Namespace from './resolvers/Namespace';
+import * as PersistentVolume from './resolvers/PersistentVolume';
+import * as PersistentVolumeClaim from './resolvers/PersistentVolumeClaim';
 import * as Pod from './resolvers/Pod';
 import * as Query from './resolvers/Query';
 import * as Secret from './resolvers/Secret';
@@ -30,7 +32,9 @@ const resolvers = {
 	Service,
 	Secret,
 	ConfigMap,
-	User
+	User,
+	PersistentVolume,
+	PersistentVolumeClaim
 }
 
 const __dirname = path.resolve();

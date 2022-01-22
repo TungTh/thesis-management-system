@@ -1,4 +1,5 @@
-import { GQLUser } from "../schemaTypes";
+import { PrismaClient } from "@prisma/client";
+import { GQLThesis, GQLUser } from "../schemaTypes";
 
 export const id = async (parent: GQLUser, args, context, info) => {
 	return parent.id;
@@ -24,7 +25,7 @@ export const username = async (parent:GQLUser, args, context, info) => {
 	return user.username;
 }
 
-export const role = async (parent:GQLUser, args, context, info) => {
+export const role = async (parent:GQLUser, args, context: { prisma: PrismaClient}, info) => {
 	const user = await context.prisma.user.findUnique({
 		where: {
 			id: parent.id
@@ -37,19 +38,37 @@ export const role = async (parent:GQLUser, args, context, info) => {
 	return user.role;
 }
 
-export const thesis = async (parent:GQLUser, args, context, info) => {
+export const thesis = async (parent:GQLUser, args, context: { prisma: PrismaClient}, info): Promise<GQLThesis> => {
 	const user = await context.prisma.user.findUnique({
 		where: {
 			id: parent.id
 		},
 		include: {
-			thesis: true
+			thesis: {
+				include: {
+					namespace: true,
+					user: true,
+					tags: {
+						include: {
+							tag: true
+						}
+					}
+				}
+			}
 		}
 	});
 
-	user.thesis && user.thesis.forEach(thesis => {
-		thesis.report = thesis.report.toString('base64');
-	});
+	if (!user.thesis) {
+		return null;
+	}
 
-	return user.thesis;
+	return {
+		...(user.thesis),
+		report: user.thesis.report ? user.thesis.report.toString('base64') : null,
+		tags: user.thesis.tags.map(tag => {
+			return {
+				name: tag.tag.name,
+			}
+		})
+	};
 }

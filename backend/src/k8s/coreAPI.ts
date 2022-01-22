@@ -1,6 +1,6 @@
 import k8s from "@kubernetes/client-node";
 import * as yaml from "js-yaml";
-import { GQLConfigMap, GQLConfigMapInput, GQLMapValue, GQLMetadata, GQLNamespace, GQLPersistentVolumeClaim, GQLPod, GQLSecret, GQLSecretInput, GQLService, GQLServiceInput, GQLServicePort, GQLVolumeAccessMode } from "../schemaTypes";
+import { GQLConfigMap, GQLConfigMapInput, GQLMapValue, GQLMetadata, GQLNamespace, GQLPersistentVolume, GQLPersistentVolumeClaim, GQLPersistentVolumeClaimInput, GQLPersistentVolumeInput, GQLPersistentVolumeReclaimPolicy, GQLPod, GQLSecret, GQLSecretInput, GQLService, GQLServiceInput, GQLServicePort, GQLVolumeAccessMode } from "../schemaTypes";
 import { errorStatusCodes } from "../util/UtilConstant";
 import { stripReadOnly } from "./objectUtil";
 
@@ -40,6 +40,19 @@ export const createNamespace = async (name: string): Promise<GQLNamespace> => {
 
 	return <GQLNamespace> {
 		name: res.body.metadata.name
+	}
+}
+
+export const deleteNamespace = async (name: string): Promise<GQLNamespace> => {
+	const res = await api.deleteNamespace(name);
+
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		console.log(`[LOG] Error deleting namespace ${name}, statusCode: ${res.response.statusCode}`);
+		throw new Error(res.response.statusMessage);
+	}
+
+	return <GQLNamespace> {
+		name: name
 	}
 }
 
@@ -168,6 +181,18 @@ export const createService = async (namespace: string, service: GQLServiceInput)
 	return getServiceInfo(namespace, service.name);
 }
 
+export const deleteService = async (namespace: string, name: string): Promise<GQLService> => {
+	const service = await getServiceInfo(namespace, name);
+
+	const res = await api.deleteNamespacedService(name, namespace);
+
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return service;
+}
+
 export const getSecretMetasInNamespace = async (namespace: string): Promise<GQLMetadata[]> => {
 	const res = await api.listNamespacedSecret(namespace);
 
@@ -238,6 +263,18 @@ export const createSecret = async (namespace: string, secret: GQLSecretInput): P
 	return getSecretInfo(namespace, secret.name);
 }
 
+export const deleteSecret = async (namespace: string, name: string): Promise<GQLSecret> => {
+	const secret = await getSecretInfo(namespace, name);
+
+	const res = await api.deleteNamespacedSecret(name, namespace);
+
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return secret;
+}
+
 export const getConfigMapMetasInNamespace = async (namespace: string): Promise<GQLMetadata[]> => {
 	const res = await api.listNamespacedConfigMap(namespace);
 
@@ -306,6 +343,18 @@ export const createConfigMap = async (namespace: string, configMap: GQLConfigMap
 	return getConfigMapInfo(namespace, configMap.name);
 }
 
+export const deleteConfigMap = async (namespace: string, name: string): Promise<GQLConfigMap> => {
+	const configMap = await getConfigMapInfo(namespace, name);
+
+	const res = await api.deleteNamespacedConfigMap(name, namespace);
+
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return configMap;
+}
+
 export const getPersistentVolumeClaimMetasInNamespace = async (namespace: string): Promise<GQLMetadata[]> => {
 	const res = await api.listNamespacedPersistentVolumeClaim(namespace);
 
@@ -357,4 +406,127 @@ export const getPersistentVolumeClaimInfo = async (namespace: string, name: stri
 	};
 
 	return pvc;
+}
+
+export const createPersistentVolumeClaim = async (namespace: string, pvc: GQLPersistentVolumeClaimInput): Promise<GQLPersistentVolumeClaim> => {
+	const pvcObj = <k8s.V1PersistentVolumeClaim> {
+		metadata: {
+			name: pvc.meta.name,
+			namespace: namespace,
+		},
+		spec: {
+			accessModes: pvc.accessMode,
+			volumeName: pvc.volumeName,
+			volumeMode: pvc.volumeMode,
+			resources: {
+				limits: {
+					cpu: pvc.resources.limits.cpu,
+					memory: pvc.resources.limits.memory,
+				},
+				requests: {
+					cpu: pvc.resources.requests.cpu,
+					memory: pvc.resources.requests.memory,
+				}
+			}
+		}
+	}
+
+	const res = await api.createNamespacedPersistentVolumeClaim(namespace, pvcObj);
+
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return getPersistentVolumeClaimInfo(namespace, pvc.meta.name);
+}
+
+export const deletePersistentVolumeClaim = async (namespace: string, name: string): Promise<GQLPersistentVolumeClaim> => {
+	const pvc = await getPersistentVolumeClaimInfo(namespace, name);
+
+	const res = await api.deleteNamespacedPersistentVolumeClaim(name, namespace);
+
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return pvc;
+}
+
+export const getPersistentVolumeMetas = async (): Promise<GQLMetadata[]> => {
+	const res = await api.listPersistentVolume();
+
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	const pvMetas = res.body.items.map(pv => <GQLMetadata> {
+		name: pv.metadata.name,
+		uid: pv.metadata.uid,
+	})
+
+	return pvMetas;
+}
+
+export const getPersistentVolumeInfo = async (name: string): Promise<GQLPersistentVolume> => {
+	const res = await api.readPersistentVolume(name);
+
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	const pv = <GQLPersistentVolume> {
+		meta: {
+			name: res.body.metadata.name,
+			uid: res.body.metadata.uid,
+			namespace: {
+				name: res.body.metadata.namespace,
+			}
+		},
+		capacity: res.body.spec.capacity.storage,
+		accessMode: res.body.spec.accessModes.map(mode => GQLVolumeAccessMode[mode as keyof typeof GQLVolumeAccessMode]),
+		volumeMode: res.body.spec.volumeMode,
+		reclaimPolicy: GQLPersistentVolumeReclaimPolicy[res.body.spec.persistentVolumeReclaimPolicy as keyof typeof GQLPersistentVolumeReclaimPolicy],
+	}
+
+	return pv;
+}
+
+export const createPersistentVolume = async (pv: GQLPersistentVolumeInput): Promise<GQLPersistentVolume> => {
+	const pvObj = <k8s.V1PersistentVolume> {
+		metadata: {
+			name: pv.meta.name,
+			namespace: pv.meta.namespace.name,
+		},
+		spec: {
+			capacity: {
+				storage: pv.capacity,
+			},
+			accessModes: pv.accessMode,
+			volumeMode: pv.volumeMode,
+			persistentVolumeReclaimPolicy: pv.reclaimPolicy,
+			local: {
+				path: `/mnt/data/k8s-volumes/${pv.meta.name}`,
+			}
+		}
+	}
+
+	const res = await api.createPersistentVolume(pvObj);
+
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return getPersistentVolumeInfo(pv.meta.name);
+}
+
+export const deletePersistentVolume = async (name: string): Promise<GQLPersistentVolume> => {
+	const pv = await getPersistentVolumeInfo(name);
+
+	const res = await api.deletePersistentVolume(name);
+
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return pv;
 }

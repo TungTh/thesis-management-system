@@ -12,6 +12,10 @@ type Query {
 	allServices(namespace: String!): [Service!]
 	allConfigMaps(namespace: String!): [ConfigMap!]
 	allSecrets(namespace: String!): [Secret!]
+	allPersistentVolumes: [PersistentVolume!]
+	allPersistentVolumeClaims(namespace: String!): [PersistentVolumeClaim!]
+
+	getServiceDemo(namespace: String!, name: String!):	String!
 }
 
 type Mutation {
@@ -30,6 +34,8 @@ type Mutation {
 	createService(namespace: String!, service: ServiceInput!): Service
 	createConfigMap(namespace: String!, configMap: ConfigMapInput!): ConfigMap
 	createSecret(namespace: String!, secret: SecretInput!): Secret
+	createPersistentVolume(persistentVolume: PersistentVolumeInput!): PersistentVolume
+	createPersistentVolumeClaim(namespace: String!, persistentVolumeClaim: PersistentVolumeClaimInput!): PersistentVolumeClaim
 
 	deleteNamespace(name: String!): Boolean
 	deleteDeployment(namespace: String!, name: String!): Boolean
@@ -37,6 +43,8 @@ type Mutation {
 	deleteService(namespace: String!, name: String!): Boolean
 	deleteConfigMap(namespace: String!, name: String!): Boolean
 	deleteSecret(namespace: String!, name: String!): Boolean
+	deletePersistentVolume(namespace: String!, name: String!): Boolean
+	deletePersistentVolumeClaim(namespace: String!, name: String!): Boolean
 }
 
 type Namespace {
@@ -51,8 +59,8 @@ type Namespace {
 
 type Metadata {
 	name: String!
-	uid: String!
-	namespace: Namespace!
+	uid: String
+	namespace: Namespace
 }
 
 input MetadataInput {
@@ -91,18 +99,18 @@ input StatefulSetInput {
 
 type Pod {
 	meta: Metadata!
-	hostIP: String!
-	podIP: String!
+	hostIP: String
+	podIP: String
 	status: String!
 }
 
 type PodTemplate {
-	meta: Metadata!
+	meta: Metadata
 	containers: [Container!]!
 }
 
 input PodTemplateInput {
-	meta: MetadataInput!
+	meta: MetadataInput
 	containers: [ContainerInput!]!
 }
 
@@ -250,7 +258,14 @@ type PersistentVolume {
 	volumeMode: String!
 	capacity: String!
 	reclaimPolicy: PersistentVolumeReclaimPolicy! 
-	
+}
+
+input PersistentVolumeInput {
+	meta: MetadataInput!
+	accessMode: [VolumeAccessMode!]!
+	volumeMode: String!
+	capacity: String!
+	reclaimPolicy: PersistentVolumeReclaimPolicy! 
 }
 
 enum PersistentVolumeReclaimPolicy {
@@ -264,6 +279,14 @@ type PersistentVolumeClaim {
 	volumeMode: String!
 	accessMode: [VolumeAccessMode!]!
 	resources: ResourceRequirements
+}
+
+input PersistentVolumeClaimInput {
+	meta: MetadataInput!
+	volumeName: String!
+	volumeMode: String!
+	accessMode: [VolumeAccessMode!]!
+	resources: ResourceRequirementsInput
 }
 
 enum VolumeAccessMode {
@@ -306,14 +329,12 @@ type Thesis {
 }
 
 input ThesisInput {
-	id: String!
 	title: String!
 	studentName: String!
 	supervisorName: String!
 	summary: String
 	report: String
 	namespace: String!
-	user: String!
 	tags: [ThesisTagInput!]
 }
 

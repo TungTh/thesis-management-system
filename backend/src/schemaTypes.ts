@@ -26,12 +26,16 @@ export interface GQLMutation {
   createService?: GQLService;
   createConfigMap?: GQLConfigMap;
   createSecret?: GQLSecret;
+  createPersistentVolume?: GQLPersistentVolume;
+  createPersistentVolumeClaim?: GQLPersistentVolumeClaim;
   deleteNamespace?: boolean;
   deleteDeployment?: boolean;
   deleteStatefulSet?: boolean;
   deleteService?: boolean;
   deleteConfigMap?: boolean;
   deleteSecret?: boolean;
+  deletePersistentVolume?: boolean;
+  deletePersistentVolumeClaim?: boolean;
 }
 
 export interface GQLUserInput {
@@ -89,7 +93,7 @@ export interface GQLMetadata {
 }
 
 export interface GQLPodTemplate {
-  meta: GQLMetadata;
+  meta?: GQLMetadata;
   containers: Array<GQLContainer>;
 }
 
@@ -229,7 +233,7 @@ export interface GQLDeploymentInput {
 }
 
 export interface GQLPodTemplateInput {
-  meta: GQLMetadataInput;
+  meta?: GQLMetadataInput;
   containers: Array<GQLContainerInput>;
 }
 
@@ -324,6 +328,13 @@ export interface GQLPersistentVolume {
   capacity: string;
   reclaimPolicy: GQLPersistentVolumeReclaimPolicy;
 }
+export interface GQLPersistentVolumeInput {
+  meta: GQLMetadata;
+  accessMode: Array<GQLVolumeAccessMode>;
+  volumeMode: string;
+  capacity: string;
+  reclaimPolicy: GQLPersistentVolumeReclaimPolicy;
+}
 
 export enum GQLVolumeAccessMode {
   ReadWriteOnce = 'ReadWriteOnce',
@@ -345,3 +356,10 @@ export interface GQLPersistentVolumeClaim {
   resources?: GQLResourceRequirements;
 }
 
+export interface GQLPersistentVolumeClaimInput {
+  meta: GQLMetadata;
+  volumeName: string;
+  volumeMode: string;
+  accessMode: Array<GQLVolumeAccessMode>;
+  resources?: GQLResourceRequirementsInput;
+}

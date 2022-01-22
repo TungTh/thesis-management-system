@@ -36,8 +36,7 @@ export const getDeploymentInfo = async (namespace: string, name: string): Promis
 	}
 
 	const dpl = stripReadOnly(res.body);
-
-	
+	// const dpl = res.body;
 
 	const deployment = <GQLDeployment> {
 		meta: {
@@ -46,6 +45,9 @@ export const getDeploymentInfo = async (namespace: string, name: string): Promis
 			namespace: {
 				name: res.body.metadata.namespace
 			},
+		},
+		template: {
+			...dpl.spec.template.spec
 		},
 		replicas: res.body.spec.replicas,
 		yaml: yaml.dump(dpl),
@@ -117,6 +119,18 @@ export const createDeployment = async (namespace: string, deployment: GQLDeploym
 	return getDeploymentInfo(namespace, deployment.name);
 }
 
+export const deleteDeployment = async (namespace: string, name: string): Promise<GQLDeployment> => {
+	const deployment = await getDeploymentInfo(namespace, name);
+
+	const res = await api.deleteNamespacedDeployment(name, namespace);
+	
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return deployment;
+}
+
 export const getStatefulSetMetasInNamespace = async (namespace: string): Promise<GQLMetadata[]> => {
 	const res = await api.listNamespacedStatefulSet(namespace);
 
@@ -151,6 +165,9 @@ export const getStatefulSetInfo = async (namespace: string, name: string): Promi
 			namespace: {
 				name: res.body.metadata.namespace,
 			}
+		},
+		template: {
+			...sfs.spec.template.spec,
 		},
 		replicas: res.body.spec.replicas,
 		yaml: yaml.dump(sfs),
@@ -221,4 +238,16 @@ export const createStatefulSet = async (namespace: string, statefulSet: GQLState
 	}
 
 	return getStatefulSetInfo(namespace, statefulSet.name);
+}
+
+export const deleteStatefulSet = async (namespace: string, name: string): Promise<GQLStatefulSet> => {
+	const statefulSet = await getStatefulSetInfo(namespace, name);
+
+	const res = await api.deleteNamespacedStatefulSet(name, namespace);
+	
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return statefulSet;
 }

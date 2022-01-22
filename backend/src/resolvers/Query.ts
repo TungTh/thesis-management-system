@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import * as appAPI from "../k8s/appAPI";
 import * as coreAPI from "../k8s/coreAPI";
-import { GQLConfigMap, GQLDeployment, GQLNamespace, GQLPod, GQLSecret, GQLService, GQLStatefulSet, GQLThesis, GQLUser } from "../schemaTypes";
+import { GQLConfigMap, GQLDeployment, GQLNamespace, GQLPersistentVolume, GQLPersistentVolumeClaim, GQLPod, GQLSecret, GQLService, GQLStatefulSet, GQLThesis, GQLUser } from "../schemaTypes";
 
 interface NamespacedObject {
 	namespace: string,
@@ -44,13 +44,13 @@ export const allTheses = async (parent, args, context: {prisma: PrismaClient}, i
 			title: "asc"
 		},
 		include: {
-			User: true,
+			user: true,
 			tags: {
 				include: {
 					tag: true
 				}
 			},
-			Namespace: true
+			namespace: true
 		}	
 	});
 
@@ -63,12 +63,12 @@ export const allTheses = async (parent, args, context: {prisma: PrismaClient}, i
 			summary: thesis.summary,
 			...(thesis.report && {report: thesis.report.toString('base64')}),
 			namespace: {
-				name: thesis.Namespace.name,
+				name: thesis.namespace.name,
 			},
 			user: {
 				id: thesis.userId,
-				name: thesis.User.name,
-				username: thesis.User.username,
+				name: thesis.user.name,
+				username: thesis.user.username,
 			},
 			tags: thesis.tags.map(tag => {
 				return {
@@ -85,13 +85,13 @@ export const getThesisById = async (parent: any, args: { id: string; }, context:
 			id: args.id
 		},
 		include: {
-			User: true,
+			user: true,
 			tags: {
 				include: {
 					tag: true
 				}
 			},
-			Namespace: true
+			namespace: true
 		}
 	});
 
@@ -103,12 +103,12 @@ export const getThesisById = async (parent: any, args: { id: string; }, context:
 		summary: thesis.summary,
 		...(thesis.report && {report: thesis.report.toString('base64')}),
 		namespace: {
-			name: thesis.Namespace.name,
+			name: thesis.namespace.name,
 		},
 		user: {
 			id: thesis.userId,
-			name: thesis.User.name,
-			username: thesis.User.username,
+			name: thesis.user.name,
+			username: thesis.user.username,
 		},
 		tags: thesis.tags.map(tag => {
 			return {
@@ -163,7 +163,7 @@ export const allServices = async (parent, args: NamespacedObject, context, info)
 }
 
 export const allConfigMaps = async (parent, args: NamespacedObject, context, info): Promise<GQLConfigMap[]> => {
-	const cfgMapMetas = await coreAPI.getConfigMapMetasInNamespace(parent.name);
+	const cfgMapMetas = await coreAPI.getConfigMapMetasInNamespace(args.namespace);
 
 	const configMaps = cfgMapMetas.map(cfgMapMeta => <GQLConfigMap> {
 		meta: cfgMapMeta
@@ -173,11 +173,31 @@ export const allConfigMaps = async (parent, args: NamespacedObject, context, inf
 }
 
 export const allSecrets = async (parent, args: NamespacedObject, context, info): Promise<GQLSecret[]> => {
-	const secretMetas = await coreAPI.getSecretMetasInNamespace(parent.name);
+	const secretMetas = await coreAPI.getSecretMetasInNamespace(args.namespace);
 
 	const secrets = secretMetas.map(secretMeta => <GQLSecret> {
 		meta: secretMeta
 	});
 
 	return secrets;
+}
+
+export const allPersistentVolumes = async (parent, args, context, info): Promise<GQLPersistentVolume[]> => {
+	const pvMetas = await coreAPI.getPersistentVolumeMetas();
+
+	const persistentVolumes = pvMetas.map(pvMeta => <GQLPersistentVolume> {
+		meta: pvMeta
+	});
+
+	return persistentVolumes;
+}
+
+export const allPersistentVolumeClaims = async (parent, args: NamespacedObject, context, info): Promise<GQLPersistentVolumeClaim[]> => {
+	const pvcMetas = await coreAPI.getPersistentVolumeClaimMetasInNamespace(args.namespace);
+
+	const persistentVolumeClaims = pvcMetas.map(pvcMeta => <GQLPersistentVolumeClaim> {
+		meta: pvcMeta
+	});
+
+	return persistentVolumeClaims;
 }

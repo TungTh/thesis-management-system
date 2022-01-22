@@ -1,5 +1,5 @@
 import * as appAPI from '../k8s/appAPI';
-import { GQLMetadata, GQLStatefulSet } from "../schemaTypes";
+import { GQLMetadata, GQLPodTemplate, GQLStatefulSet } from "../schemaTypes";
 
 export const meta = (parent: GQLStatefulSet, args, context, info): GQLMetadata => {
 	return parent.meta;
@@ -9,6 +9,12 @@ export const replicas = async (parent: GQLStatefulSet, args, context, info): Pro
 	const sfsInfo = await appAPI.getStatefulSetInfo(parent.meta.namespace.name, parent.meta.name);
 
 	return sfsInfo.replicas;
+}
+
+export const template = async (parent: GQLStatefulSet, args, context, info): Promise<GQLPodTemplate> => {
+	const sfsInfo = await appAPI.getStatefulSetInfo(parent.meta.namespace.name, parent.meta.name);
+
+	return sfsInfo.template;
 }
 
 export const serviceName = async (parent: GQLStatefulSet, args, context, info): Promise<string> => {
