@@ -140,6 +140,7 @@ export const deleteDeployment = async (namespace: string, name: string): Promise
 }
 
 export const scaleDeployment = async (namespace: string, name: string, replicas: number): Promise<boolean> => {
+	console.log(`Scaling deployment ${name} to ${replicas} replicas`);
 	const res = await api.patchNamespacedDeployment(name, namespace, <k8s.V1Deployment> {
 		spec: {
 			replicas: replicas,
