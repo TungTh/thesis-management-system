@@ -79,6 +79,7 @@ export interface GQLNamespace {
   configMaps?: Array<GQLConfigMap>;
   secrets?: Array<GQLSecret>;
   services?: Array<GQLService>;
+  persistentVolumeClaims?: Array<GQLPersistentVolumeClaim>;
 }
 
 export interface GQLDeployment {
@@ -115,6 +116,7 @@ export interface GQLResourceRequirements {
 export interface GQLResource {
   cpu?: string;
   memory?: string;
+  storage?: string;
 }
 
 export interface GQLContainerPort {
@@ -263,6 +265,7 @@ export interface GQLResourceRequirementsInput {
 export interface GQLResourceInput {
   cpu?: string;
   memory?: string;
+  storage?: string;
 }
 
 export interface GQLContainerPortInput {

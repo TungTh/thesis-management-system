@@ -3,7 +3,7 @@ import * as yaml from 'js-yaml';
 import { GQLDeployment, GQLDeploymentInput, GQLMetadata, GQLStatefulSet, GQLStatefulSetInput } from '../schemaTypes';
 import { errorStatusCodes } from '../util/UtilConstant';
 import { stripReadOnly } from './objectUtil';
-const { KubeConfig, AppsV1Api } = k8s;
+const { KubeConfig, AppsV1Api} = k8s;
 
 const kc = new KubeConfig();
 kc.loadFromDefault();
@@ -36,7 +36,6 @@ export const getDeploymentInfo = async (namespace: string, name: string): Promis
 	}
 
 	const dpl = stripReadOnly(res.body);
-	// const dpl = res.body;
 
 	const deployment = <GQLDeployment> {
 		meta: {
@@ -63,7 +62,7 @@ export const createDeployment = async (namespace: string, deployment: GQLDeploym
 			namespace: namespace,
 		},
 		spec: {
-			replicas: deployment.replicas,
+			replicas: 0,
 			selector: {
 				matchLabels: {
 					app: deployment.name,
@@ -131,6 +130,24 @@ export const deleteDeployment = async (namespace: string, name: string): Promise
 	return deployment;
 }
 
+export const scaleDeployment = async (namespace: string, name: string, replicas: number): Promise<boolean> => {
+	const res = await api.patchNamespacedDeployment(name, namespace, <k8s.V1Deployment> {
+		spec: {
+			replicas: replicas,
+		}
+	}, undefined, undefined, undefined, undefined, {
+		headers: {
+			'Content-Type': 'application/merge-patch+json',
+		}
+	});
+	
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return true;
+}
+
 export const getStatefulSetMetasInNamespace = async (namespace: string): Promise<GQLMetadata[]> => {
 	const res = await api.listNamespacedStatefulSet(namespace);
 
@@ -183,7 +200,7 @@ export const createStatefulSet = async (namespace: string, statefulSet: GQLState
 			namespace: namespace,
 		},
 		spec: {
-			replicas: statefulSet.replicas,
+			replicas: 0,
 			selector: {
 				matchLabels: {
 					app: statefulSet.name,
@@ -250,4 +267,22 @@ export const deleteStatefulSet = async (namespace: string, name: string): Promis
 	}
 
 	return statefulSet;
+}
+
+export const scaleStatefulSet = async (namespace: string, name: string, replicas: number): Promise<boolean> => {
+	const res = await api.patchNamespacedStatefulSet(name, namespace, <k8s.V1StatefulSet> {
+		spec: {
+			replicas: replicas,
+		}
+	}, undefined, undefined, undefined, undefined, {
+		headers: {
+			'Content-Type': 'application/merge-patch+json',
+		}
+	});
+	
+	if (errorStatusCodes.includes(res.response.statusCode)) {
+		throw new Error(res.response.statusMessage);
+	}
+
+	return true;
 }

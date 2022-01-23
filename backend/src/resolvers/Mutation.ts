@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import * as yaml from 'js-yaml';
 import jwt from 'jsonwebtoken';
 import * as uuid from 'uuid';
-import { createDeployment as createDeploymentAPI, createStatefulSet as createStatefulSetAPI, deleteDeployment as deleteDeploymentAPI, deleteStatefulSet as deleteStatefulSetAPI, getDeploymentMetasInNamespace, getStatefulSetMetasInNamespace } from "../k8s/appAPI";
+import { createDeployment as createDeploymentAPI, createStatefulSet as createStatefulSetAPI, deleteDeployment as deleteDeploymentAPI, deleteStatefulSet as deleteStatefulSetAPI, getDeploymentMetasInNamespace, getStatefulSetMetasInNamespace, scaleDeployment } from "../k8s/appAPI";
 import { createConfigMap as createConfigMapAPI, createNamespace as createNamespaceAPI, createPersistentVolume as createPersistentVolumeAPI, createPersistentVolumeClaim as createPersistentVolumeClaimAPI, createSecret as createSecretAPI, createService as createServiceAPI, deleteConfigMap as deleteConfigMapAPI, deleteNamespace as deleteNamespaceAPI, deletePersistentVolume as deletePersistentVolumeAPI, deleteSecret as deleteSecretAPI, deleteService as deleteServiceAPI, getConfigMapMetasInNamespace, getNamespaces, getPersistentVolumeClaimMetasInNamespace, getPersistentVolumeMetas, getSecretMetasInNamespace, getServiceMetasInNamespace } from "../k8s/coreAPI";
 import { GQLAuthPayload, GQLConfigMap, GQLConfigMapInput, GQLDeployment, GQLDeploymentInput, GQLMutation, GQLNamespace, GQLPersistentVolume, GQLPersistentVolumeClaim, GQLPersistentVolumeClaimInput, GQLPersistentVolumeInput, GQLSecret, GQLSecretInput, GQLService, GQLServiceInput, GQLStatefulSetInput, GQLThesis, GQLThesisInput, GQLUserInput } from "../schemaTypes";
 import { JWT_EXPIRY, JWT_SECRET, REFRESH_TOKEN_EXPIRY } from "../util/UtilConstant";
@@ -631,6 +631,29 @@ export const deletePersistentVolume = async (parent: GQLMutation, args: { namesp
 
 	return true;
 }
+
+export const startDeployment = async (parent: GQLMutation, args: { namespace: string, name: string }, context: { prisma: PrismaClient, userId: string }): Promise<boolean> => {
+	const success = await scaleDeployment(args.namespace, args.name, 1);
+
+	if (!success) {
+		throw new Error('Could not start deployment! Please contact an administrator!');
+	}
+
+	setTimeout(stopDeployment, 1000 * 60 * 15, args.namespace, args.name);
+
+	return true;
+}
+
+export const stopDeployment = async (parent: GQLMutation, args: { namespace: string, name: string }, context: { prisma: PrismaClient, userId: string }): Promise<boolean> => {
+	const success = await scaleDeployment(args.namespace, args.name, 0);
+
+	if (!success) {
+		throw new Error('Could not stop deployment! Please contact an administrator!');
+	}
+
+	return true;
+}
+
 
 async function userOwnNamespace(context:{ prisma: PrismaClient, userId:	string }, namespace: string): Promise<boolean> {
 	const ns = await context.prisma.namespace.findUnique({

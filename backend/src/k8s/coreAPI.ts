@@ -374,7 +374,7 @@ export const getPersistentVolumeClaimMetasInNamespace = async (namespace: string
 }
 
 export const getPersistentVolumeClaimInfo = async (namespace: string, name: string): Promise<GQLPersistentVolumeClaim> => {
-	const res = await api.readNamespacedPersistentVolumeClaim(namespace, name);
+	const res = await api.readNamespacedPersistentVolumeClaim(name, namespace);
 
 	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
@@ -394,14 +394,16 @@ export const getPersistentVolumeClaimInfo = async (namespace: string, name: stri
 		volumeMode: res.body.spec.volumeMode,
 		accessMode: accessModes,
 		resources: {
-			limits: {
+			...(res.body.spec.resources.limits && {limits: {
 				cpu: res.body.spec.resources.limits.cpu,
 				memory: res.body.spec.resources.limits.memory,
-			},
-			requests: {
+				storage: res.body.spec.resources.limits.storage,
+			}}),
+			...(res.body.spec.resources.requests && {requests: {
 				cpu: res.body.spec.resources.requests.cpu,
 				memory: res.body.spec.resources.requests.memory,
-			}
+				storage: res.body.spec.resources.requests.storage,
+			}})
 		}
 	};
 

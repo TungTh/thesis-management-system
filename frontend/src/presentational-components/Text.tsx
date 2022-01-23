@@ -23,7 +23,7 @@ export const TitleText: FC<TitleTextProps> = ({
       noWrap
       align={align}
       color="inherit"
-      variant="inherit"
+      variant="h5"
       style={{
         fontWeight: "bold",
         fontSize: fontSize,
@@ -70,7 +70,7 @@ export const TextWithLink: FC<TextProps> = ({ value, to, align }) => {
 };
 
 interface TextContentProps {
-  value: string;
+  value: string | JSX.Element;
   label: string;
   align?: "left" | "center" | "right";
 }
@@ -81,7 +81,11 @@ export const TextContent: FC<TextContentProps> = ({ label, value, align }) => {
       <Typography variant="body2" color="textSecondary" align={align}>
         {label}
       </Typography>
-      <Typography variant="h6" align={align} style={{ fontWeight: "bold" }}>
+      <Typography
+        variant="h6"
+        align={align}
+        style={{ fontWeight: "normal", wordWrap: "break-word" }}
+      >
         {value}
       </Typography>
     </>

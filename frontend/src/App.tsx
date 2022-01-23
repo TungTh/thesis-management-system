@@ -38,7 +38,7 @@ const theme = createTheme({
     },
     background: {
       default: "#e5e5e5",
-      paper: "#ffffff",
+      paper: "#f6f6f6",
     },
     text: {
       primary: "#000000",

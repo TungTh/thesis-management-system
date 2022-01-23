@@ -45,6 +45,9 @@ type Mutation {
 	deleteSecret(namespace: String!, name: String!): Boolean
 	deletePersistentVolume(namespace: String!, name: String!): Boolean
 	deletePersistentVolumeClaim(namespace: String!, name: String!): Boolean
+
+	startDeployment(namespace: String!, name: String!): Boolean
+	stopDeployment(namespace: String!, name: String!): Boolean
 }
 
 type Namespace {
@@ -55,6 +58,7 @@ type Namespace {
 	configMaps: [ConfigMap!]
 	secrets: [Secret!]
 	services: [Service!]
+	persistentVolumeClaims: [PersistentVolumeClaim!]
 }
 
 type Metadata {
@@ -309,11 +313,13 @@ input ResourceRequirementsInput {
 type Resource {
 	cpu: String
 	memory: String
+	storage: String
 }
 
 input ResourceInput {
 	cpu: String
 	memory: String
+	storage: String
 }
 
 type Thesis {

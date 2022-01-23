@@ -1,10 +1,14 @@
-import { Container } from "@material-ui/core";
+import { useQuery } from "@apollo/client";
+import { Container, Grid } from "@material-ui/core";
 import MenuItem from "@material-ui/core/MenuItem";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import React from "react";
 import { useHistory } from "react-router-dom";
+import { LoadingDialog } from "../../presentational-components/Dialog";
 import NavigationBar from "../../presentational-components/NavigationBar";
 import { ThesisModal } from "../../presentational-components/ThesisModal";
+import { GQLThesis } from "../../schemaTypes";
+import { ALLTHESES_QUERY } from "../../service-component/API/query";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -17,10 +21,13 @@ const useStyles = makeStyles((theme) => ({
   appBarSpacer: theme.mixins.toolbar,
   container: {
     position: "absolute",
-    top: "10%",
-    left: "10%",
+    height: "90vh",
   },
 }));
+
+interface ThesesData {
+  allTheses: GQLThesis[];
+}
 
 export default function DemoPage() {
   const classes = useStyles();
@@ -29,8 +36,19 @@ export default function DemoPage() {
     <MenuItem onClick={() => history.push("/demo")}>Home</MenuItem>,
     <MenuItem onClick={() => history.push("/")}>Login</MenuItem>,
   ];
+
+  const theses = useQuery<ThesesData>(ALLTHESES_QUERY);
+
+  console.log(theses);
+
+  if (theses.error) {
+    console.log(theses.error);
+    return <div>Error loading theses! Please contact an administrator!</div>;
+  }
+
   return (
     <React.Fragment>
+      {theses.loading && <LoadingDialog open={true} />}
       <div className={classes.root}>
         <NavigationBar
           options={navigationBarFunction}
@@ -38,13 +56,19 @@ export default function DemoPage() {
         />
         <div className={classes.content}>
           <div className={classes.appBarSpacer} />
-          <Container maxWidth="sm" className={classes.container}>
+          <Grid container className={classes.container} component={Container}>
+            {theses.data &&
+              theses.data.allTheses.map((thesis) => (
+                <Grid item component={ThesisModal} thesis={thesis} />
+              ))}
             <ThesisModal
               thesis={{
                 id: "test",
                 title: "Thesis Title",
                 studentName: "Student Name",
+                studentID: "Student ID",
                 supervisorName: "Supervisor Name",
+                semester: "Semester",
                 namespace: {
                   name: "Test Namespace",
                 },
@@ -55,7 +79,7 @@ export default function DemoPage() {
                 },
               }}
             ></ThesisModal>
-          </Container>
+          </Grid>
         </div>
       </div>
     </React.Fragment>

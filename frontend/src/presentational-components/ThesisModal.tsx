@@ -44,11 +44,21 @@ const useStyles = makeStyles((theme) => ({
     display: "block",
     position: "relative",
   },
+  rowBox: {
+    padding: theme.spacing(3, 5, 3, 5),
+  },
   card: {
     position: "relative",
     display: "flex",
-    margin: theme.spacing(1, 6, 1, 6),
+    margin: theme.spacing(2, 1, 2, 1),
     backgroundColor: theme.palette.background.default,
+    width: "100%",
+  },
+  backgroundCard: {
+    position: "relative",
+    display: "flex",
+    padding: theme.spacing(0, 0, 0, 0),
+    backgroundColor: "#9ED7D5",
   },
   cardContent: {
     padding: theme.spacing(0, 2, 0, 4),
@@ -59,6 +69,10 @@ const useStyles = makeStyles((theme) => ({
   button: {
     margin: theme.spacing(1),
   },
+  modal: {
+    maxHeight: "100vh",
+    overflow: "auto",
+  },
 }));
 
 export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
@@ -67,10 +81,60 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  let memoryUsage = "0";
+  let cpuUsage = "0";
+  if (thesis.namespace.deployments) {
+    thesis.namespace.deployments.forEach((deployment) => {
+      const mem = deployment.template.containers.map((container) => {
+        return (
+          (container.resources &&
+            container.resources.limits &&
+            container.resources.limits.memory) ||
+          "Not defined"
+        );
+      });
+
+      memoryUsage = mem.join(", ");
+
+      const cpu = deployment.template.containers.map((container) => {
+        return (
+          (container.resources &&
+            container.resources.limits &&
+            container.resources.limits.cpu) ||
+          "Not defined"
+        );
+      });
+
+      cpuUsage = cpu.join(", ");
+    });
+  }
+
+  let storageUsage = "0Gi";
+  if (thesis.namespace.persistentVolumeClaims) {
+    const storage = thesis.namespace.persistentVolumeClaims.map((pvc) => {
+      return (
+        (pvc.resources &&
+          pvc.resources.requests &&
+          pvc.resources.requests.storage) ||
+        "Not defined"
+      );
+    });
+
+    storageUsage = storage.join(", ");
+  }
+
   return (
-    <>
-      <Button onClick={handleOpen}>Open Modal</Button>
-      <Modal open={open} onClose={handleClose}>
+    <Container maxWidth="sm">
+      <Card className={classes.backgroundCard}>
+        <CardContent className={classes.cardContent}>
+          <Card className={classes.card}>
+            <CardContent className={classes.cardContent}>
+              <Button onClick={handleOpen}>More</Button>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
+      <Modal open={open} onClose={handleClose} className={classes.modal}>
         <Grid
           container
           direction="column"
@@ -80,7 +144,7 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
         >
           <Grid item component={Paper} className={classes.paper}>
             <Grid container direction="row" spacing={0}>
-              <Grid item className={classes.innerPaper}>
+              <Grid item className={classes.innerPaper} xs={12} lg={8}>
                 <TitleText value={thesis.title} />
               </Grid>
               <Grid item>
@@ -99,7 +163,7 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                   color="primary"
                   className={classes.button}
                 >
-                  {"View Demo"}
+                  {"👁 View Demo"}
                 </Button>
               </Grid>
             </Grid>
@@ -112,6 +176,7 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                   direction="row"
                   spacing={2}
                   justifyContent="space-between"
+                  className={classes.rowBox}
                 >
                   <Grid item component={Card} sm={3} className={classes.card}>
                     <CardContent className={classes.cardContent}>
@@ -122,31 +187,134 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                     </CardContent>
                   </Grid>
                   <Grid item component={Card} sm={3} className={classes.card}>
+                    <CardContent className={classes.cardContent}>
                       <TextContent
-                        label="Thesis Owner"
-                        value={thesis.studentName}
+                        label="Thesis Owner ID"
+                        value={thesis.studentID}
                       />
+                    </CardContent>
                   </Grid>
                   <Grid item component={Card} sm={3} className={classes.card}>
-                    test
+                    <CardContent className={classes.cardContent}>
+                      <TextContent
+                        label="Thesis Completion Semester"
+                        value={thesis.semester}
+                      />
+                    </CardContent>
                   </Grid>
                   <Grid item component={Card} sm={3} className={classes.card}>
-                    test
+                    <CardContent className={classes.cardContent}>
+                      <TextContent
+                        label="Thesis Report"
+                        value={thesis.studentID}
+                      />
+                    </CardContent>
                   </Grid>
                   <Grid item component={Card} sm={3} className={classes.card}>
-                    test
+                    <CardContent className={classes.cardContent}>
+                      <TextContent
+                        label="Keywords"
+                        value={
+                          thesis.tags?.reduce((keywords, tag) => {
+                            return {
+                              name: [keywords.name, tag.name].join(", "),
+                            };
+                          }).name || "None"
+                        }
+                      />
+                    </CardContent>
                   </Grid>
                   <Grid item component={Card} sm={3} className={classes.card}>
-                    test
+                    <CardContent className={classes.cardContent}>
+                      <TextContent
+                        label="Supervisor"
+                        value={thesis.supervisorName}
+                      />
+                    </CardContent>
                   </Grid>
                 </Grid>
               </Grid>
-              <Grid item></Grid>
-              <Grid item></Grid>
+              <Grid item>
+                <Grid
+                  container
+                  direction="row"
+                  spacing={2}
+                  justifyContent="space-between"
+                  className={classes.rowBox}
+                >
+                  <Grid item component={Card} xs={12} className={classes.card}>
+                    <CardContent>
+                      <TextContent
+                        label="Thesis Summary"
+                        value={
+                          thesis.summary ||
+                          "*No summary was provided for this thesis*"
+                        }
+                      />
+                    </CardContent>
+                  </Grid>
+                </Grid>
+              </Grid>
+              <Grid item>
+                <Grid
+                  container
+                  direction="row"
+                  spacing={2}
+                  justifyContent="space-between"
+                  className={classes.rowBox}
+                >
+                  <Grid item component={Card} sm={3} className={classes.card}>
+                    <CardContent className={classes.cardContent}>
+                      <TextContent
+                        label="No. of Deployments"
+                        value={
+                          thesis.namespace.deployments?.length.toString() || "0"
+                        }
+                      />
+                    </CardContent>
+                  </Grid>
+                  <Grid item component={Card} sm={3} className={classes.card}>
+                    <CardContent className={classes.cardContent}>
+                      <TextContent
+                        label="No. of Services"
+                        value={
+                          thesis.namespace.services?.length.toString() || "0"
+                        }
+                      />
+                    </CardContent>
+                  </Grid>
+                  <Grid item component={Card} sm={3} className={classes.card}>
+                    <CardContent className={classes.cardContent}>
+                      <TextContent
+                        label="No. of running Pods"
+                        value={thesis.namespace.pods?.length.toString() || "0"}
+                      />
+                    </CardContent>
+                  </Grid>
+                  <Grid item component={Card} sm={3} className={classes.card}>
+                    <CardContent className={classes.cardContent}>
+                      <TextContent
+                        label="Memory Usage Limit"
+                        value={memoryUsage}
+                      />
+                    </CardContent>
+                  </Grid>
+                  <Grid item component={Card} sm={3} className={classes.card}>
+                    <CardContent className={classes.cardContent}>
+                      <TextContent label="Storage Usage" value={storageUsage} />
+                    </CardContent>
+                  </Grid>
+                  <Grid item component={Card} sm={3} className={classes.card}>
+                    <CardContent className={classes.cardContent}>
+                      <TextContent label="CPU Usage Limit" value={cpuUsage} />
+                    </CardContent>
+                  </Grid>
+                </Grid>
+              </Grid>
             </Grid>
           </Grid>
         </Grid>
       </Modal>
-    </>
+    </Container>
   );
 };

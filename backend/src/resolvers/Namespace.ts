@@ -1,6 +1,6 @@
-import * as coreAPI from "../k8s/coreAPI"
-import * as appAPI from "../k8s/appAPI"
-import { GQLConfigMap, GQLDeployment, GQLNamespace, GQLPod, GQLSecret, GQLService, GQLStatefulSet } from "../schemaTypes";
+import * as appAPI from "../k8s/appAPI";
+import * as coreAPI from "../k8s/coreAPI";
+import { GQLConfigMap, GQLDeployment, GQLNamespace, GQLPersistentVolumeClaim, GQLPod, GQLSecret, GQLService, GQLStatefulSet } from "../schemaTypes";
 
 export const name = (parent: GQLNamespace, args, context, info): string => {
 	return parent.name;
@@ -64,4 +64,14 @@ export const services = async (parent: GQLNamespace, args, context, info): Promi
 	});
 
 	return services;
+}
+
+export const persistentVolumeClaims = async (parent: GQLNamespace, args, context, info): Promise<GQLPersistentVolumeClaim[]> => {
+	const pvcMetas = await coreAPI.getPersistentVolumeClaimMetasInNamespace(parent.name);
+
+	const persistentVolumeClaims = pvcMetas.map(pvcMeta => <GQLPersistentVolumeClaim> {
+		meta: pvcMeta
+	});
+
+	return persistentVolumeClaims;
 }
