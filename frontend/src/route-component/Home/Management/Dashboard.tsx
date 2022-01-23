@@ -8,7 +8,6 @@ import NavigationBar from "../../../presentational-components/NavigationBar";
 import { TextWithLink } from "../../../presentational-components/Text";
 import { SIGNOUT_MUTATION } from "../../../service-component/API/mutation";
 import { AuthorizationContext } from "../../../service-component/Context/authorization";
-import DeploymentPage from "./DeploymentPage";
 
 const useStyles = makeStyles((theme) => ({
   root: {
