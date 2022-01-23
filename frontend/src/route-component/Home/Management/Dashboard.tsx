@@ -1,17 +1,24 @@
 import { useMutation } from "@apollo/client";
+import { Box, Container, Theme } from "@material-ui/core";
 import MenuItem from "@material-ui/core/MenuItem";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { useContext } from "react";
 import { Redirect, Route, Switch, useHistory } from "react-router-dom";
 import { AuthorizationContainer } from "../../../container-components/Authorization/AuthorizationContainer";
+import { DeploymentModal } from "../../../presentational-components/DeploymentModal";
 import NavigationBar from "../../../presentational-components/NavigationBar";
 import { TextWithLink } from "../../../presentational-components/Text";
 import { SIGNOUT_MUTATION } from "../../../service-component/API/mutation";
 import { AuthorizationContext } from "../../../service-component/Context/authorization";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   root: {
     display: "flex",
+    backgroundImage: "linear-gradient(#ffffff, #FFD580)",
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    height: "100vh",
   },
   content: {
     flexGrow: 1,
@@ -20,7 +27,11 @@ const useStyles = makeStyles((theme) => ({
   appBarSpacer: theme.mixins.toolbar,
   box: {
     display: "flex",
-    height: "100%",
+  },
+  container: {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
   },
 }));
 
@@ -53,6 +64,7 @@ export default function Dashboard() {
   };
 
   if (!AuthContext.token) return <Redirect to="/" />;
+
   return (
     <AuthorizationContainer>
       <div className={classes.root}>
@@ -62,7 +74,19 @@ export default function Dashboard() {
         />
         <div className={classes.content}>
           <div className={classes.appBarSpacer} />
-          <Box className={classes.box}></Box>
+          <Box className={classes.box}>
+            <Container
+              maxWidth={false}
+              disableGutters={true}
+              className={classes.container}
+            >
+              <Box className={classes.box}>
+                {/* <DeploymentModal model={} /> */}
+              </Box>
+              <Box className={classes.box}>tsetse</Box>
+              <Box className={classes.box}>set</Box>
+            </Container>
+          </Box>
         </div>
       </div>
     </AuthorizationContainer>

@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client";
-import { Container, Grid } from "@material-ui/core";
+import { Container, Grid, Theme } from "@material-ui/core";
 import MenuItem from "@material-ui/core/MenuItem";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import React, { useContext } from "react";
@@ -11,7 +11,7 @@ import { GQLThesis } from "../../schemaTypes";
 import { ALLTHESES_QUERY } from "../../service-component/API/query";
 import { AuthorizationContext } from "../../service-component/Context/authorization";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   root: {
     display: "flex",
     backgroundImage: "linear-gradient(#ffffff, #FFD580)",
@@ -88,36 +88,7 @@ export default function HomePage() {
                   sm={3}
                 />
               ))}
-            <Grid
-              item
-              component={ThesisModal}
-              thesis={{
-                id: "test",
-                title: "Thesis Title",
-                studentName: "Student Name",
-                studentID: "Student ID",
-                supervisorName: "Supervisor Name",
-                semester: "Semester",
-                namespace: {
-                  name: "Test Namespace",
-                },
-                user: {
-                  id: "testuserid",
-                  name: "Test User",
-                  username: "testuser",
-                },
-                tags: [
-                  {
-                    name: "TestTag",
-                  },
-                  {
-                    name: "AnotherTestTag",
-                  },
-                ],
-              }}
-              xs={12}
-              sm={3}
-            ></Grid>
+            <Grid item xs={12} sm={3}></Grid>
           </Grid>
         </div>
       </div>

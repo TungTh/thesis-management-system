@@ -6,13 +6,14 @@ import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import { TitleText, TitleTextWithLink } from "./Text";
 import { DropdownButton } from "./Button";
 import { FC } from "react";
+import { Theme } from "@material-ui/core";
 
 interface NavigationBarProps {
   title: string;
   options: JSX.Element[];
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   toolBar: {
     backgroundColor: theme.palette.primary.main,
     color: theme.palette.common.white,

@@ -1,5 +1,5 @@
 import { useMutation } from "@apollo/client";
-import { Grid } from "@material-ui/core";
+import { Grid, Theme } from "@material-ui/core";
 import Avatar from "@material-ui/core/Avatar";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Paper from "@material-ui/core/Paper";
@@ -24,7 +24,7 @@ import {
 } from "../../service-component/API/mutation";
 import { AuthorizationContext } from "../../service-component/Context/authorization";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   root: {
     height: "100vh",
     backgroundImage:

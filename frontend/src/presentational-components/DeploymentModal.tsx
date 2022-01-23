@@ -1,5 +1,16 @@
-import { Box, Button, Card, CardContent, Container, Grid, Modal, Paper, Typography } from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  Grid,
+  Modal,
+  Paper,
+  Theme,
+  Typography,
+} from "@material-ui/core";
+import makeStyles from "@material-ui/core/styles/makeStyles";
 import { FC, useState } from "react";
 import { GQLDeployment } from "../schemaTypes";
 import { BackgroundLetterAvatars } from "./Avatar";
@@ -10,7 +21,7 @@ interface DeploymentModal {
   deployment: GQLDeployment;
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   paper: {
     position: "relative",
     display: "block",
@@ -91,7 +102,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export const DeploymentModel: FC<DeploymentModal> = ({ deployment }) => {
+export const DeploymentModal: FC<DeploymentModal> = ({ deployment }) => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);

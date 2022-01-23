@@ -1,3 +1,4 @@
+import { Theme } from "@material-ui/core";
 import Avatar from "@material-ui/core/Avatar";
 import Container from "@material-ui/core/Container";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -7,7 +8,7 @@ import React from 'react';
 import { TextWithLink, TitleText } from "../../presentational-components/Text";
 
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
 	paper: {
 		marginTop: theme.spacing(8),
 		display: 'flex',
