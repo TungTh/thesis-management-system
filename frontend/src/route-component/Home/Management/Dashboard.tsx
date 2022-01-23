@@ -18,6 +18,10 @@ const useStyles = makeStyles((theme) => ({
     overflow: "auto",
   },
   appBarSpacer: theme.mixins.toolbar,
+  box: {
+    display: "flex",
+    height: "100%",
+  },
 }));
 
 export default function Dashboard() {
@@ -58,6 +62,7 @@ export default function Dashboard() {
         />
         <div className={classes.content}>
           <div className={classes.appBarSpacer} />
+          <Box className={classes.box}></Box>
         </div>
       </div>
     </AuthorizationContainer>

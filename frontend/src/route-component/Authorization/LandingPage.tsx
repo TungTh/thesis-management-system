@@ -45,7 +45,7 @@ const useStyles = makeStyles((theme) => ({
   },
   avatar: {
     margin: theme.spacing(1),
-    backgroundColor: theme.palette.secondary.main,
+    backgroundColor: theme.palette.primary.light,
   },
   form: {
     width: "100%",
@@ -121,8 +121,8 @@ export default function LandingPage() {
       });
   };
 
-  const handleGoToDemoClick = async () => {
-    history.push("/demo");
+  const handleGoToHomeClick = async () => {
+    history.push("/home");
   };
 
   if (AuthContext.token) return <Redirect to="/dashboard" />;
@@ -189,8 +189,8 @@ export default function LandingPage() {
               <TitleText value="Just taking a look?" fontSize="18px" />
               <form className={classes.form}>
                 <ActionButton
-                  value="Go to thesis demos"
-                  onClick={() => handleGoToDemoClick()}
+                  value="Go to thesis repository homepage"
+                  onClick={() => handleGoToHomeClick()}
                 />
               </form>
             </div>

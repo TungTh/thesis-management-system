@@ -84,7 +84,11 @@ export const TextContent: FC<TextContentProps> = ({ label, value, align }) => {
       <Typography
         variant="h6"
         align={align}
-        style={{ fontWeight: "normal", wordWrap: "break-word" }}
+        style={{
+          fontWeight: "normal",
+          wordWrap: "break-word",
+          whiteSpace: "break-spaces",
+        }}
       >
         {value}
       </Typography>

@@ -50,7 +50,9 @@ export default function HomePage() {
     )) || <MenuItem onClick={() => history.push("/")}>Login</MenuItem>,
   ];
 
-  const theses = useQuery<ThesesData>(ALLTHESES_QUERY);
+  const theses = useQuery<ThesesData>(ALLTHESES_QUERY, {
+    pollInterval: 30000,
+  });
 
   console.log(theses);
 
