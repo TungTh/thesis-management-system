@@ -12,6 +12,8 @@ import {
 } from "@material-ui/core";
 import { FC, useState } from "react";
 import { GQLThesis } from "../schemaTypes";
+import { BackgroundLetterAvatars } from "./Avatar";
+import { Tag } from "./Tag";
 import { TextContent, TitleText } from "./Text";
 
 interface ThesisModalProps {
@@ -41,7 +43,7 @@ const useStyles = makeStyles((theme) => ({
   },
   box: {
     marginTop: "auto",
-    display: "block",
+    display: "flex",
     position: "relative",
   },
   rowBox: {
@@ -59,12 +61,36 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     padding: theme.spacing(0, 0, 0, 0),
     backgroundColor: "#9ED7D5",
+    flexDirection: "column",
+    borderRadius: theme.spacing(2),
   },
-  cardContent: {
-    padding: theme.spacing(0, 2, 0, 4),
+  cardOverlay: {
+    width: "100%",
+    padding: theme.spacing(0, 0, 0, 0),
+  },
+  cardOverlayTransparent: {
+    width: "100%",
+    padding: theme.spacing(0, 0, 0, 0),
+    backgroundColor: "rgba(0, 0, 0, 0)",
+  },
+  cardContentOverlay: {
+    width: "100%",
+    padding: theme.spacing(0, 0, 0, 0),
     "&:last-child": {
       paddingBottom: 0,
     },
+  },
+  cardContent: {
+    padding: theme.spacing(0, 2, 0, 4),
+    width: "100%",
+    "&:last-child": {
+      paddingBottom: 0,
+    },
+  },
+  cardContentBalance: {
+    padding: theme.spacing(1, 3, 1, 3),
+    justifyContent: "center",
+    display: "flex",
   },
   button: {
     margin: theme.spacing(1),
@@ -94,6 +120,9 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
         );
       });
 
+      console.log({ mem });
+
+      if (memoryUsage !== "0") mem.push(memoryUsage);
       memoryUsage = mem.join(", ");
 
       const cpu = deployment.template.containers.map((container) => {
@@ -105,12 +134,16 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
         );
       });
 
+      if (cpuUsage !== "0") cpu.push(cpuUsage);
       cpuUsage = cpu.join(", ");
     });
   }
 
   let storageUsage = "0Gi";
-  if (thesis.namespace.persistentVolumeClaims) {
+  if (
+    thesis.namespace.persistentVolumeClaims &&
+    thesis.namespace.persistentVolumeClaims.length > 0
+  ) {
     const storage = thesis.namespace.persistentVolumeClaims.map((pvc) => {
       return (
         (pvc.resources &&
@@ -126,10 +159,50 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
   return (
     <Container maxWidth="sm">
       <Card className={classes.backgroundCard}>
-        <CardContent className={classes.cardContent}>
-          <Card className={classes.card}>
-            <CardContent className={classes.cardContent}>
-              <Button onClick={handleOpen}>More</Button>
+        <CardContent className={classes.cardContentOverlay}>
+          <Card className={classes.cardOverlayTransparent}>
+            <CardContent className={classes.cardContentBalance}>
+              <BackgroundLetterAvatars str={thesis.studentName} />
+            </CardContent>
+            <CardContent className={classes.cardContentBalance}>
+              <Typography
+                variant="h5"
+                component="h2"
+                style={{ color: "#6200EE", fontWeight: "bold" }}
+              >
+                {thesis.studentName}
+              </Typography>
+            </CardContent>
+          </Card>
+        </CardContent>
+        <CardContent className={classes.cardContentOverlay}>
+          <Card className={classes.cardOverlay}>
+            <CardContent className={classes.cardContentBalance}>
+              {thesis.tags && thesis.tags.length > 0 && (
+                <Box className={classes.box}>
+                  <Grid container spacing={2}>
+                    {thesis.tags.map((tag) => (
+                      <Grid item key={tag.name}>
+                        <Tag tag={tag.name} />
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              )}
+            </CardContent>
+            <CardContent className={classes.cardContentBalance}>
+              <Typography variant="h5">{thesis.title}</Typography>
+            </CardContent>
+            <CardContent className={classes.cardContentBalance}>
+              <Typography variant="body1">Summary: {thesis.summary}</Typography>
+            </CardContent>
+            <CardContent className={classes.cardContentBalance}>
+              <Button
+                onClick={handleOpen}
+                style={{ color: "#6200EE", fontWeight: "bold" }}
+              >
+                More
+              </Button>
             </CardContent>
           </Card>
         </CardContent>

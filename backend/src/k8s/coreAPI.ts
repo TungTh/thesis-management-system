@@ -406,7 +406,6 @@ export const getPersistentVolumeClaimInfo = async (namespace: string, name: stri
 			}})
 		}
 	};
-
 	return pvc;
 }
 
@@ -421,13 +420,8 @@ export const createPersistentVolumeClaim = async (namespace: string, pvc: GQLPer
 			volumeName: pvc.volumeName,
 			volumeMode: pvc.volumeMode,
 			resources: {
-				limits: {
-					cpu: pvc.resources.limits.cpu,
-					memory: pvc.resources.limits.memory,
-				},
 				requests: {
-					cpu: pvc.resources.requests.cpu,
-					memory: pvc.resources.requests.memory,
+					storage: pvc.resources.requests.storage,
 				}
 			}
 		}
@@ -450,6 +444,8 @@ export const deletePersistentVolumeClaim = async (namespace: string, name: strin
 	if (errorStatusCodes.includes(res.response.statusCode)) {
 		throw new Error(res.response.statusMessage);
 	}
+
+	console.log(res);
 
 	return pvc;
 }
@@ -479,10 +475,6 @@ export const getPersistentVolumeInfo = async (name: string): Promise<GQLPersiste
 	const pv = <GQLPersistentVolume> {
 		meta: {
 			name: res.body.metadata.name,
-			uid: res.body.metadata.uid,
-			namespace: {
-				name: res.body.metadata.namespace,
-			}
 		},
 		capacity: res.body.spec.capacity.storage,
 		accessMode: res.body.spec.accessModes.map(mode => GQLVolumeAccessMode[mode as keyof typeof GQLVolumeAccessMode]),
@@ -506,9 +498,10 @@ export const createPersistentVolume = async (pv: GQLPersistentVolumeInput): Prom
 			accessModes: pv.accessMode,
 			volumeMode: pv.volumeMode,
 			persistentVolumeReclaimPolicy: pv.reclaimPolicy,
-			local: {
+			hostPath: {
 				path: `/mnt/data/k8s-volumes/${pv.meta.name}`,
-			}
+			},
+			storageClassName: "standard",
 		}
 	}
 

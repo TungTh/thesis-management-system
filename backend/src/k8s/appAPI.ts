@@ -104,6 +104,15 @@ export const createDeployment = async (namespace: string, deployment: GQLDeploym
 							}}),
 						}
 					}),
+					...(deployment.template.volumes && {volumes: deployment.template.volumes.map(v => {
+						return <k8s.V1Volume> {
+							name: v.name,
+							persistentVolumeClaim: {
+								claimName: v.persistentVolumeClaim,
+								readOnly: false
+							}
+						}
+					})}),
 				}
 			}
 		}

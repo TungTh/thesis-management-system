@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Switch } from "react-router-dom";
 import LandingPage from "./route-component/Authorization/LandingPage";
 import SignUpPage from "./route-component/Authorization/SignUpPage";
 import ForgotPasswordPage from "./route-component/Authorization/ForgotPasswordPage";
-import HomePage from "./route-component/Home/HomePage";
+import Dashboard from "./route-component/Home/Management/Dashboard";
 import ThemeProvider from "@material-ui/styles/ThemeProvider";
 import { createTheme } from "@material-ui/core/styles";
 import { AuthorizationContext } from "./service-component/Context/authorization";
@@ -16,7 +16,7 @@ import {
   InMemoryCache,
 } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
-import DemoPage from "./route-component/Home/DemoPage";
+import HomePage from "./route-component/Home/HomePage";
 
 // https://coolors.co/fcba04-ffebeb-590004
 const theme = createTheme({
@@ -116,8 +116,8 @@ export default function App() {
                 path="/forgot-password"
                 component={ForgotPasswordPage}
               />
-              <Route path="/dashboard" component={HomePage} />
-              <Route path="/demo" component={DemoPage} />
+              <Route path="/dashboard" component={Dashboard} />
+              <Route path="/home" component={HomePage} />
             </Switch>
           </BrowserRouter>
         </AuthorizationContext.Provider>

@@ -29,11 +29,11 @@ const useStyles = makeStyles((theme) => ({
     height: "100vh",
     backgroundImage:
       "url(https://dean1665.vn/uploads/school/dhqt-dhqg_hcm.jpg)",
-    backgroundRepeat: "no-repeat",
     backgroundColor:
       theme.palette.type === "light"
         ? theme.palette.grey[50]
         : theme.palette.grey[900],
+    backgroundRepeat: "no-repeat",
     backgroundSize: "cover",
     backgroundPosition: "center",
   },

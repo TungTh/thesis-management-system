@@ -91,8 +91,8 @@ export interface GQLDeployment {
 
 export interface GQLMetadata {
   name: string;
-  uid: string;
-  namespace: GQLNamespace;
+  uid?: string;
+  namespace?: GQLNamespace;
 }
 
 export interface GQLPodTemplate {
@@ -369,4 +369,14 @@ export interface GQLPersistentVolumeClaimInput {
   volumeMode: string;
   accessMode: Array<GQLVolumeAccessMode>;
   resources?: GQLResourceRequirementsInput;
+}
+
+export interface GQLVolume {
+  name: string;
+  persistentVolumeClaim: string;
+}
+
+export interface GQLVolumeInput {
+  name: string;
+  persistentVolumeClaim: string;
 }

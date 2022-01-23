@@ -111,11 +111,23 @@ type Pod {
 type PodTemplate {
 	meta: Metadata
 	containers: [Container!]!
+	volumes: [Volume!]
 }
 
 input PodTemplateInput {
 	meta: MetadataInput
 	containers: [ContainerInput!]!
+	volumes: [VolumeInput!]
+}
+
+type Volume {
+	name: String!
+	persistentVolumeClaim: String! 
+}
+
+input VolumeInput {
+	name: String!
+	persistentVolumeClaim: String! 
 }
 
 type Container {

@@ -91,13 +91,14 @@ export interface GQLDeployment {
 
 export interface GQLMetadata {
   name: string;
-  uid: string;
-  namespace: GQLNamespace;
+  uid?: string;
+  namespace?: GQLNamespace;
 }
 
 export interface GQLPodTemplate {
   meta?: GQLMetadata;
   containers: Array<GQLContainer>;
+  volumes?: Array<GQLVolume>;
 }
 
 export interface GQLContainer {
@@ -116,7 +117,7 @@ export interface GQLResourceRequirements {
 export interface GQLResource {
   cpu?: string;
   memory?: string;
-  storate?: string;
+  storage?: string;
 }
 
 export interface GQLContainerPort {
@@ -241,6 +242,7 @@ export interface GQLDeploymentInput {
 export interface GQLPodTemplateInput {
   meta?: GQLMetadataInput;
   containers: Array<GQLContainerInput>;
+  volumes?: Array<GQLVolumeInput>;
 }
 
 export interface GQLMetadataInput {
@@ -369,4 +371,14 @@ export interface GQLPersistentVolumeClaimInput {
   volumeMode: string;
   accessMode: Array<GQLVolumeAccessMode>;
   resources?: GQLResourceRequirementsInput;
+}
+
+export interface GQLVolume {
+  name: string;
+  persistentVolumeClaim: string;
+}
+
+export interface GQLVolumeInput {
+  name: string;
+  persistentVolumeClaim: string;
 }

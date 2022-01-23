@@ -30,7 +30,6 @@ const NavigationBar: FC<NavigationBarProps> = (props) => {
     <AppBar elevation={2} className={classes.appBar}>
       <Toolbar component="nav" variant="dense" className={classes.toolBar}>
         <TitleText value={props.title} />
-        <TitleTextWithLink value="Sign in" to="/" />
         <DropdownButton options={props.options} icon={<AccountCircleIcon />} />
       </Toolbar>
     </AppBar>
