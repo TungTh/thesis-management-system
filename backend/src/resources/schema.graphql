@@ -82,7 +82,7 @@ type Deployment {
 
 input DeploymentInput {
 	name: String!
-	replicas: Int!
+	replicas: Int
 	template: PodTemplateInput!
 }
 
