@@ -7,8 +7,8 @@ import { useHistory } from "react-router-dom";
 import { LoadingDialog } from "../../presentational-components/Dialog";
 import NavigationBar from "../../presentational-components/NavigationBar";
 import { ThesisModal } from "../../presentational-components/ThesisModal";
-import { GQLThesis } from "../../schemaTypes";
-import { ALLTHESES_QUERY } from "../../service-component/API/query";
+import { GQLQuery, GQLThesis } from "../../schemaTypes";
+import { ALL_THESES_QUERY } from "../../service-component/API/query";
 import { AuthorizationContext } from "../../service-component/Context/authorization";
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -44,13 +44,16 @@ export default function HomePage() {
   const navigationBarFunction = [
     <MenuItem onClick={() => history.push("/home")}>Home</MenuItem>,
     (AuthContext.status && (
-      <MenuItem onClick={() => history.push("/dashboard")}>
-        Management System
-      </MenuItem>
+      <>
+        <MenuItem onClick={() => history.push("/dashboard")}>
+          Management System
+        </MenuItem>
+        <MenuItem onClick={() => history.push("/signout")}>Sign Out</MenuItem>
+      </>
     )) || <MenuItem onClick={() => history.push("/")}>Login</MenuItem>,
   ];
 
-  const theses = useQuery<ThesesData>(ALLTHESES_QUERY, {
+  const theses = useQuery<GQLQuery>(ALL_THESES_QUERY, {
     pollInterval: 30000,
   });
 
@@ -78,6 +81,7 @@ export default function HomePage() {
             maxWidth={false}
           >
             {theses.data &&
+              theses.data.allTheses &&
               theses.data.allTheses.map((thesis) => (
                 <Grid
                   item
@@ -88,7 +92,7 @@ export default function HomePage() {
                   sm={3}
                 />
               ))}
-            <Grid item xs={12} sm={3}></Grid>
+            <></>
           </Grid>
         </div>
       </div>

@@ -10,6 +10,20 @@
  */
 export interface GQLQuery {
   default?: string;
+  allUsers?: GQLUser[];
+  getUserById?: GQLUser;
+  allTheses?: GQLThesis[];
+  getThesisById?: GQLThesis;
+  allNamespaces?: GQLNamespace[];
+  allPods?: GQLPod[];
+  allDeployments?: GQLDeployment[];
+  allStatefulSets?: GQLStatefulSet[];
+  allServices?: GQLService[];
+  allConfigMaps?: GQLConfigMap[];
+  allSecrets?: GQLSecret[];
+  allPersistentVolumes?: GQLPersistentVolume[];
+  allPersistentVolumeClaims?: GQLPersistentVolumeClaim[];
+  getServiceDemo: string;
 }
 
 export interface GQLMutation {

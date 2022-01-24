@@ -5,11 +5,13 @@ import { useMutation } from "@apollo/client";
 import { REFRESHJWT_MUTATION } from "../../service-component/API/mutation";
 
 interface AuthorizationContainerProps {
+  requireAdmin?: boolean;
   children: ReactElement<{}>;
 }
 
 export const AuthorizationContainer: FC<AuthorizationContainerProps> = ({
   children,
+  requireAdmin,
 }) => {
   const AuthContext = useContext(AuthorizationContext);
   const [refreshJWT] = useMutation(REFRESHJWT_MUTATION);
@@ -50,5 +52,11 @@ export const AuthorizationContainer: FC<AuthorizationContainerProps> = ({
   }, [AuthContext, AuthContext.token, refreshJWT]);
 
   if (!AuthContext.status) return <Redirect to="/" />;
+
+  console.log({ require: requireAdmin, user: AuthContext.user });
+
+  if (requireAdmin && AuthContext.user.role.name !== "Admin")
+    return <Redirect to="/" />;
+
   return children;
 };

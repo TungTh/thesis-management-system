@@ -15,6 +15,7 @@ export const Tag: FC<TagProps> = ({ tag }) => {
         color: "white",
         padding: "5px",
         display: "inline-flex",
+        fontWeight: "bold",
       }}
     >
       {tag}

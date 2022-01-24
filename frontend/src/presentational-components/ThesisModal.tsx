@@ -13,12 +13,12 @@ import {
   Typography,
 } from "@material-ui/core";
 import { FC, useState } from "react";
-import { GQLThesis } from "../schemaTypes";
+import { GQLQuery, GQLThesis } from "../schemaTypes";
 import { THESIS_BY_ID_QUERY } from "../service-component/API/query";
 import { BackgroundLetterAvatars } from "./Avatar";
 import { LoadingDialog } from "./Dialog";
 import { Tag } from "./Tag";
-import { TextContent, TitleText } from "./Text";
+import { Base64PDFLink, TextContent, TitleText } from "./Text";
 
 interface ThesisModalProps {
   thesis: GQLThesis;
@@ -43,7 +43,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   container: {
     position: "absolute",
     display: "flex",
-    margin: "auto",
+    margin: theme.spacing(0),
   },
   box: {
     marginTop: "auto",
@@ -105,10 +105,6 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-interface ThesisData {
-  getThesisById: GQLThesis;
-}
-
 export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
@@ -118,7 +114,7 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
   };
   const handleClose = () => setOpen(false);
 
-  const query = useQuery<ThesisData>(THESIS_BY_ID_QUERY, {
+  const query = useQuery<GQLQuery>(THESIS_BY_ID_QUERY, {
     variables: { id: thesis.id },
   });
 
@@ -127,6 +123,10 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
     return (
       <div>Error loading the thesis! Please contact an administrator!</div>
     );
+  }
+
+  if (query.data.getThesisById === undefined) {
+    return <div>Thesis not found!</div>;
   }
 
   thesis = query.data?.getThesisById;
@@ -149,7 +149,7 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
       console.log({ mem });
 
       if (memoryUsage !== "0") mem.push(memoryUsage);
-      memoryUsage = mem.join(", ");
+      memoryUsage = mem.join("; ");
 
       const cpu = deployment.template.containers.map((container) => {
         return (
@@ -161,7 +161,7 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
       });
 
       if (cpuUsage !== "0") cpu.push(cpuUsage);
-      cpuUsage = cpu.join(", ");
+      cpuUsage = cpu.join("; ");
     });
   }
 
@@ -179,13 +179,13 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
       );
     });
 
-    storageUsage = storage.join(", ");
+    storageUsage = storage.join("; ");
   }
 
   return (
     <>
       {query.loading && <LoadingDialog open={true} />}
-      <Container maxWidth="sm">
+      <Container maxWidth="xs">
         <Card className={classes.backgroundCard}>
           <CardContent className={classes.cardContentOverlay}>
             <Card className={classes.cardOverlayTransparent}>
@@ -219,11 +219,21 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                 )}
               </CardContent>
               <CardContent className={classes.cardContentBalance}>
-                <Typography variant="h5">{thesis.title}</Typography>
+                <Typography noWrap variant="h5">
+                  {thesis.title}
+                </Typography>
               </CardContent>
               <CardContent className={classes.cardContentBalance}>
-                <Typography variant="body1">
-                  Summary: {thesis.summary}
+                <Typography
+                  variant="body1"
+                  style={{
+                    display: "-webkit-box",
+                    overflow: "hidden",
+                    WebkitBoxOrient: "vertical",
+                    WebkitLineClamp: 3,
+                  }}
+                >
+                  {thesis.summary}
                 </Typography>
               </CardContent>
               <CardContent className={classes.cardContentBalance}>
@@ -242,7 +252,7 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
             container
             direction="column"
             justifyContent="flex-start"
-            spacing={3}
+            spacing={0}
             className={classes.container}
           >
             <Grid item component={Paper} className={classes.paper}>
@@ -281,7 +291,13 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                     justifyContent="space-between"
                     className={classes.rowBox}
                   >
-                    <Grid item component={Card} sm={3} className={classes.card}>
+                    <Grid
+                      item
+                      component={Card}
+                      md={5}
+                      lg={3}
+                      className={classes.card}
+                    >
                       <CardContent className={classes.cardContent}>
                         <TextContent
                           label="Thesis Owner"
@@ -289,7 +305,13 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                         />
                       </CardContent>
                     </Grid>
-                    <Grid item component={Card} sm={3} className={classes.card}>
+                    <Grid
+                      item
+                      component={Card}
+                      md={5}
+                      lg={3}
+                      className={classes.card}
+                    >
                       <CardContent className={classes.cardContent}>
                         <TextContent
                           label="Thesis Owner ID"
@@ -297,7 +319,13 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                         />
                       </CardContent>
                     </Grid>
-                    <Grid item component={Card} sm={3} className={classes.card}>
+                    <Grid
+                      item
+                      component={Card}
+                      md={5}
+                      lg={3}
+                      className={classes.card}
+                    >
                       <CardContent className={classes.cardContent}>
                         <TextContent
                           label="Thesis Completion Semester"
@@ -305,15 +333,32 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                         />
                       </CardContent>
                     </Grid>
-                    <Grid item component={Card} sm={3} className={classes.card}>
+                    <Grid
+                      item
+                      component={Card}
+                      md={5}
+                      lg={3}
+                      className={classes.card}
+                    >
                       <CardContent className={classes.cardContent}>
                         <TextContent
                           label="Thesis Report"
-                          value={thesis.studentID}
+                          value={
+                            <Base64PDFLink
+                              value={thesis.report}
+                              label="report.pdf"
+                            />
+                          }
                         />
                       </CardContent>
                     </Grid>
-                    <Grid item component={Card} sm={3} className={classes.card}>
+                    <Grid
+                      item
+                      component={Card}
+                      md={5}
+                      lg={3}
+                      className={classes.card}
+                    >
                       <CardContent className={classes.cardContent}>
                         <TextContent
                           label="Keywords"
@@ -327,7 +372,13 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                         />
                       </CardContent>
                     </Grid>
-                    <Grid item component={Card} sm={3} className={classes.card}>
+                    <Grid
+                      item
+                      component={Card}
+                      md={5}
+                      lg={3}
+                      className={classes.card}
+                    >
                       <CardContent className={classes.cardContent}>
                         <TextContent
                           label="Supervisor"
@@ -353,7 +404,12 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                     >
                       <CardContent>
                         <TextContent
-                          label="Thesis Summary"
+                          label="Thesis Title"
+                          value={thesis.title}
+                          bold
+                        />
+                        <TextContent
+                          label="Summary"
                           value={
                             thesis.summary ||
                             "*No summary was provided for this thesis*"
@@ -371,7 +427,13 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                     justifyContent="space-between"
                     className={classes.rowBox}
                   >
-                    <Grid item component={Card} sm={3} className={classes.card}>
+                    <Grid
+                      item
+                      component={Card}
+                      md={5}
+                      lg={3}
+                      className={classes.card}
+                    >
                       <CardContent className={classes.cardContent}>
                         <TextContent
                           label="No. of Deployments"
@@ -382,7 +444,13 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                         />
                       </CardContent>
                     </Grid>
-                    <Grid item component={Card} sm={3} className={classes.card}>
+                    <Grid
+                      item
+                      component={Card}
+                      md={5}
+                      lg={3}
+                      className={classes.card}
+                    >
                       <CardContent className={classes.cardContent}>
                         <TextContent
                           label="No. of Services"
@@ -392,7 +460,13 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                         />
                       </CardContent>
                     </Grid>
-                    <Grid item component={Card} sm={3} className={classes.card}>
+                    <Grid
+                      item
+                      component={Card}
+                      md={5}
+                      lg={3}
+                      className={classes.card}
+                    >
                       <CardContent className={classes.cardContent}>
                         <TextContent
                           label="No. of running Pods"
@@ -402,7 +476,13 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                         />
                       </CardContent>
                     </Grid>
-                    <Grid item component={Card} sm={3} className={classes.card}>
+                    <Grid
+                      item
+                      component={Card}
+                      md={5}
+                      lg={3}
+                      className={classes.card}
+                    >
                       <CardContent className={classes.cardContent}>
                         <TextContent
                           label="Memory Usage Limit"
@@ -410,7 +490,13 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                         />
                       </CardContent>
                     </Grid>
-                    <Grid item component={Card} sm={3} className={classes.card}>
+                    <Grid
+                      item
+                      component={Card}
+                      md={5}
+                      lg={3}
+                      className={classes.card}
+                    >
                       <CardContent className={classes.cardContent}>
                         <TextContent
                           label="Storage Usage"
@@ -418,7 +504,13 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                         />
                       </CardContent>
                     </Grid>
-                    <Grid item component={Card} sm={3} className={classes.card}>
+                    <Grid
+                      item
+                      component={Card}
+                      md={5}
+                      lg={3}
+                      className={classes.card}
+                    >
                       <CardContent className={classes.cardContent}>
                         <TextContent label="CPU Usage Limit" value={cpuUsage} />
                       </CardContent>

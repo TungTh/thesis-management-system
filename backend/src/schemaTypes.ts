@@ -98,7 +98,7 @@ export interface GQLMetadata {
 export interface GQLPodTemplate {
   meta?: GQLMetadata;
   containers: Array<GQLContainer>;
-  volumes?: Array<GQLVolume>;
+  volume?: Array<GQLVolume>;
 }
 
 export interface GQLContainer {

@@ -298,6 +298,10 @@ export const createPersistentVolume = async (parent: GQLMutation, args: { persis
 
 
 export const createThesis = async (parent: GQLMutation, args: { thesis: GQLThesisInput }, context: { prisma: PrismaClient, userId: string }): Promise<GQLThesis> => {
+	if (!context.userId) {
+		throw new Error('You are not authorized to create a thesis!');
+	}
+
 	const user = await context.prisma.user.findUnique({
 		where: {
 			id: context.userId
@@ -319,6 +323,10 @@ export const createThesis = async (parent: GQLMutation, args: { thesis: GQLThesi
 			thesis: true
 		}
 	});
+
+	if (!namespace) {
+		throw new Error('Namespace does not exist! Please contact an administrator to get a namespace.');
+	}
 
 	if (namespace.thesis) {
 		throw new Error('This namespace already has a thesis!');
@@ -646,6 +654,38 @@ export const deletePersistentVolumeClaim = async (parent: GQLMutation, args: { n
 
 	return true;
 }
+
+export const deleteUser = async (parent: GQLMutation, args: { id: string }, context: { prisma: PrismaClient, userId: string }): Promise<boolean> => {
+	if (!userIsAdmin(context)) {
+		throw new Error('You are not authorized to delete this user!');
+	}
+
+	const user = await context.prisma.user.findUnique({
+		where: {
+			id: args.id
+		},
+	});
+
+	if (!user) {
+		throw new Error('User not found!');
+	}
+
+	const deletedUser = await context.prisma.user.update({
+		where: {
+			id: args.id
+		},
+		data: {
+			active: false
+		}
+	});
+
+	if (!deletedUser) {
+		throw new Error('Could not delete user! Please contact an administrator!');
+	}
+
+	return true;
+}
+
 
 export const startDeployment = async (parent: GQLMutation, args: { namespace: string, name: string }, context: { prisma: PrismaClient, userId: string }): Promise<boolean> => {
 	const success = await scaleDeployment(args.namespace, args.name, 1);

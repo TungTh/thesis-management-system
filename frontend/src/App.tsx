@@ -4,8 +4,7 @@ import LandingPage from "./route-component/Authorization/LandingPage";
 import SignUpPage from "./route-component/Authorization/SignUpPage";
 import ForgotPasswordPage from "./route-component/Authorization/ForgotPasswordPage";
 import Dashboard from "./route-component/Home/Management/Dashboard";
-import ThemeProvider from "@material-ui/styles/ThemeProvider";
-import { createTheme } from "@material-ui/core/styles";
+import { createTheme, ThemeProvider } from "@material-ui/core/styles";
 import { AuthorizationContext } from "./service-component/Context/authorization";
 import { setContext } from "@apollo/client/link/context";
 import {
@@ -17,6 +16,7 @@ import {
 } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
 import HomePage from "./route-component/Home/HomePage";
+import SignOutPage from "./route-component/Authorization/SignOutPage";
 
 // https://coolors.co/fcba04-ffebeb-590004
 const theme = createTheme({
@@ -31,7 +31,7 @@ const theme = createTheme({
       light: "#72ff59",
       main: "#4cbf37",
       dark: "#347d27",
-      contrastText: "#000000",
+      contrastText: "#ffffff",
     },
     action: {
       hover: "#cccccc",
@@ -118,6 +118,7 @@ export default function App() {
               />
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/home" component={HomePage} />
+              <Route path="/signout" component={SignOutPage} />
             </Switch>
           </BrowserRouter>
         </AuthorizationContext.Provider>

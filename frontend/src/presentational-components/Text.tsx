@@ -70,12 +70,18 @@ export const TextWithLink: FC<TextProps> = ({ value, to, align }) => {
 };
 
 interface TextContentProps {
-  value: string | JSX.Element;
+  value?: string | JSX.Element;
   label: string;
   align?: "left" | "center" | "right";
+  bold?: boolean;
 }
 
-export const TextContent: FC<TextContentProps> = ({ label, value, align }) => {
+export const TextContent: FC<TextContentProps> = ({
+  label,
+  value,
+  align,
+  bold,
+}) => {
   return (
     <>
       <Typography variant="body2" color="textSecondary" align={align}>
@@ -85,12 +91,37 @@ export const TextContent: FC<TextContentProps> = ({ label, value, align }) => {
         variant="h6"
         align={align}
         style={{
-          fontWeight: "normal",
+          fontWeight: (bold && "bold") || "normal",
           wordWrap: "break-word",
           whiteSpace: "break-spaces",
         }}
       >
         {value}
+      </Typography>
+    </>
+  );
+};
+
+export const Base64PDFLink: FC<TextContentProps> = ({
+  value,
+  label,
+  align,
+  bold,
+}) => {
+  return (
+    <>
+      <Typography
+        variant="h6"
+        align={align}
+        style={{
+          fontWeight: (bold && "bold") || "normal",
+          wordWrap: "break-word",
+          whiteSpace: "break-spaces",
+        }}
+      >
+        <a href={`data:application/pdf;base64,${value}`} download={`${label}`}>
+          {label}
+        </a>
       </Typography>
     </>
   );

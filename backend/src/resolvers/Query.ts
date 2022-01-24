@@ -10,32 +10,26 @@ interface NamespacedObject {
 
 export const allUsers = async (parent, args, context: {prisma: PrismaClient}, info): Promise<Array<GQLUser>> => {
 	const users = await context.prisma.user.findMany({
+		where: {
+			active: true,
+		},
 		orderBy: {
 			name: "asc"
 		}
 	});
 	
-	return users.map(user => {
-		return {
-			id: user.id,
-			name: user.name,
-			username: user.username,
-		}
-	});
-};
+	return users;
+}
 
 export const getUserById = async (parent: any, args: { id: string; }, context: {prisma: PrismaClient}, info: any): Promise<GQLUser> => {
-	const user = await context.prisma.user.findUnique({
+	const user = await context.prisma.user.findFirst({
 		where: {
-			id: args.id
+			id: args.id,
+			active: true
 		}
 	});
 
-	return {
-		id: user.id,
-		name: user.name,
-		username: user.username,
-	}
+	return user;
 }
 
 export const allTheses = async (parent, args, context: {prisma: PrismaClient}, info): Promise<Array<GQLThesis>> => {
