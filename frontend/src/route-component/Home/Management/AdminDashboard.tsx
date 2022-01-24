@@ -24,10 +24,14 @@ import { GQLQuery } from "../../../schemaTypes";
 import { useQuery } from "@apollo/client";
 import { Toast } from "../../../presentational-components/Toast";
 import {
+  NamespaceDeleteDialog,
   NamespaceInputDialog,
+  PersistentVolumeDeleteDialog,
+  PersistentVolumeInputDialog,
   UserDeleteDialog,
   UserInputDialog,
 } from "../../../presentational-components/FormDialog";
+import { ALL_PV_QUERY } from "../../../service-component/API/mutation";
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -66,11 +70,15 @@ export default function AdminDashboard() {
   ];
 
   const userQuery = useQuery<GQLQuery>(ALL_USER_QUERY, {
-    pollInterval: 30000,
+    pollInterval: 5000,
   });
 
   const namespaceQuery = useQuery<GQLQuery>(ALL_NAMESPACES_QUERY, {
-    pollInterval: 30000,
+    pollInterval: 5000,
+  });
+
+  const pvQuery = useQuery<GQLQuery>(ALL_PV_QUERY, {
+    pollInterval: 5000,
   });
 
   return (
@@ -175,7 +183,7 @@ export default function AdminDashboard() {
                 <Toast
                   label="Reload table"
                   message="Reloaded namespace table"
-                  onClick={userQuery.refetch}
+                  onClick={namespaceQuery.refetch}
                 />
               </Box>
               {namespaceQuery.loading ? (
@@ -185,7 +193,7 @@ export default function AdminDashboard() {
                   <Table
                     className={classes.table}
                     size="small"
-                    aria-label="User information table"
+                    aria-label="Namespace information table"
                   >
                     <TableHead>
                       <TableRow>
@@ -226,11 +234,93 @@ export default function AdminDashboard() {
                   </Table>
                 </TableContainer>
               )}
-              <Box
-                className={classes.box}
-                style={{ justifyContent: "flex-end" }}
-              >
+              <Box className={classes.box}>
+                <NamespaceDeleteDialog
+                  onClose={() => {
+                    setTimeout(namespaceQuery.refetch, 2000);
+                  }}
+                />
                 <NamespaceInputDialog
+                  onClose={() => {
+                    setTimeout(namespaceQuery.refetch, 2000);
+                  }}
+                />
+              </Box>
+            </Container>
+            <Container
+              maxWidth="md"
+              disableGutters={true}
+              className={classes.container}
+            >
+              <Box className={classes.box}>
+                <TitleText value="Storage / Persistent Volumes" />
+                <Toast
+                  label="Reload table"
+                  message="Reloaded storage table"
+                  onClick={pvQuery.refetch}
+                />
+              </Box>
+              {pvQuery.loading ? (
+                <div>Loading persistent volumes...</div>
+              ) : (
+                <TableContainer component={Paper}>
+                  <Table
+                    className={classes.table}
+                    size="small"
+                    aria-label="Storage information table"
+                  >
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>
+                          <strong>Volume Name</strong>
+                        </TableCell>
+                        <TableCell align="right">
+                          <strong>Capacity</strong>
+                        </TableCell>
+                        <TableCell align="right">
+                          <strong>Volume Mode</strong>
+                        </TableCell>
+                        <TableCell align="right">
+                          <strong>Access Modes</strong>
+                        </TableCell>
+                        <TableCell align="right">
+                          <strong>Reclaim Policy</strong>
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {pvQuery.data &&
+                        pvQuery.data.allPersistentVolumes &&
+                        pvQuery.data?.allPersistentVolumes.map((pv) => (
+                          <TableRow key={pv.meta.name}>
+                            <TableCell component="th" scope="row">
+                              {pv.meta.name}
+                            </TableCell>
+                            <TableCell align="right">
+                              {pv.capacity || "N/A"}
+                            </TableCell>
+                            <TableCell align="right">
+                              {pv.volumeMode || "N/A"}
+                            </TableCell>
+                            <TableCell align="right">
+                              {pv.accessMode.join("; ") || "N/A"}
+                            </TableCell>
+                            <TableCell align="right">
+                              {pv.reclaimPolicy || "N/A"}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+              <Box className={classes.box}>
+                <PersistentVolumeDeleteDialog
+                  onClose={() => {
+                    setTimeout(namespaceQuery.refetch, 2000);
+                  }}
+                />
+                <PersistentVolumeInputDialog
                   onClose={() => {
                     setTimeout(namespaceQuery.refetch, 2000);
                   }}

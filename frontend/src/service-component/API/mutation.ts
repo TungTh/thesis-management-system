@@ -57,3 +57,43 @@ mutation createNamespace ($name: String!) {
     }
 }
 `
+
+export const DELETE_NAMESPACE_MUTATION = gql`
+mutation deleteNamespace ($name: String!) {
+    deleteNamespace (name: $name)
+}
+`
+
+export const ALL_PV_QUERY = gql`
+query allPersistentVolumes {
+    allPersistentVolumes {
+        meta {
+            name
+        }
+        capacity
+        volumeMode
+        accessMode
+        reclaimPolicy
+    }
+}
+`
+
+export const CREATE_PV_MUTATION = gql`
+mutation createPersistentVolume ($persistentVolume: PersistentVolumeInput!) {
+    createPersistentVolume (persistentVolume: $persistentVolume) {
+        meta {
+            name
+        }
+        accessMode
+        volumeMode
+        capacity
+        reclaimPolicy
+    }
+}
+`
+
+export const DELETE_PV_MUTATION = gql`
+mutation deletePersistentVolume ($name: String!) {
+    deletePersistentVolume (name: $name)
+}
+`

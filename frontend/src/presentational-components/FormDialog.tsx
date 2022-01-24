@@ -6,21 +6,29 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
 } from "@material-ui/core";
 import { FC, useState } from "react";
 import { GQLMutation } from "../schemaTypes";
 import {
   CREATE_NAMESPACE_MUTATION,
+  CREATE_PV_MUTATION,
+  DELETE_NAMESPACE_MUTATION,
+  DELETE_PV_MUTATION,
   DELETE_USER_MUTATION,
   SIGNUP_MUTATION,
 } from "../service-component/API/mutation";
 import { PasswordInput, TextInput } from "./Input";
 
-interface InputDialogProps {
+interface DialogProps {
   onClose: () => void;
 }
 
-export const UserInputDialog: FC<InputDialogProps> = ({ onClose }) => {
+export const UserInputDialog: FC<DialogProps> = ({ onClose }) => {
   const [open, setOpen] = useState(false);
   const [formInfo, setFormInfo] = useState({
     username: "",
@@ -128,7 +136,7 @@ export const UserInputDialog: FC<InputDialogProps> = ({ onClose }) => {
   );
 };
 
-export const UserDeleteDialog: FC<InputDialogProps> = ({ onClose }) => {
+export const UserDeleteDialog: FC<DialogProps> = ({ onClose }) => {
   const [open, setOpen] = useState(false);
   const [formInfo, setFormInfo] = useState({
     userID: "",
@@ -204,13 +212,13 @@ export const UserDeleteDialog: FC<InputDialogProps> = ({ onClose }) => {
   );
 };
 
-export const NamespaceInputDialog: FC<InputDialogProps> = ({ onClose }) => {
+export const NamespaceInputDialog: FC<DialogProps> = ({ onClose }) => {
   const [open, setOpen] = useState(false);
   const [formInfo, setFormInfo] = useState({
     name: "",
   });
 
-  const [signup] = useMutation<GQLMutation>(CREATE_NAMESPACE_MUTATION);
+  const [createNamespace] = useMutation<GQLMutation>(CREATE_NAMESPACE_MUTATION);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -229,7 +237,7 @@ export const NamespaceInputDialog: FC<InputDialogProps> = ({ onClose }) => {
     };
 
   const handleSubmit = () => {
-    signup({
+    createNamespace({
       variables: {
         name: formInfo.name,
       },
@@ -259,6 +267,282 @@ export const NamespaceInputDialog: FC<InputDialogProps> = ({ onClose }) => {
         <DialogContent>
           <DialogContentText>
             Please enter the following information to create a new namespace.
+          </DialogContentText>
+          <TextInput
+            label="Name"
+            id="name"
+            value={formInfo.name}
+            onChange={handleFormChange("name")}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} color="primary">
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+};
+
+export const NamespaceDeleteDialog: FC<DialogProps> = ({ onClose }) => {
+  const [open, setOpen] = useState(false);
+  const [formInfo, setFormInfo] = useState({
+    name: "",
+  });
+
+  const [deleteNamespace] = useMutation<GQLMutation>(DELETE_NAMESPACE_MUTATION);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    onClose();
+  };
+
+  const handleFormChange =
+    (prop: string) =>
+    (event: { preventDefault: () => void; target: { value: any } }) => {
+      event.preventDefault();
+      setFormInfo({ ...formInfo, [prop]: event.target.value });
+    };
+
+  const handleSubmit = () => {
+    deleteNamespace({
+      variables: {
+        name: formInfo.name,
+      },
+    })
+      .then(() => {
+        setOpen(false);
+        setFormInfo({
+          name: "",
+        });
+      })
+      .catch((error) => {
+        alert(error.message);
+      });
+  };
+
+  return (
+    <>
+      <Button variant="outlined" color="secondary" onClick={handleClickOpen}>
+        Delete Namespace
+      </Button>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="form-dialog-title"
+      >
+        <DialogTitle id="form-dialog-title">Delete Namespace Form</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please enter the following information to delete a namespace.
+          </DialogContentText>
+          <TextInput
+            label="Name"
+            id="name"
+            value={formInfo.name}
+            onChange={handleFormChange("name")}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} color="primary">
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+};
+
+export const PersistentVolumeInputDialog: FC<DialogProps> = ({ onClose }) => {
+  const [open, setOpen] = useState(false);
+  const [formInfo, setFormInfo] = useState({
+    name: "",
+    capacity: "",
+    volumeMode: "Filesystem",
+    accessMode: ["ReadWriteOnce"],
+    reclaimPolicy: "Retain",
+  });
+
+  const [createPersistentVolume] = useMutation<GQLMutation>(CREATE_PV_MUTATION);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    onClose();
+  };
+
+  const handleFormChange =
+    (prop: string) =>
+    (event: { preventDefault: () => void; target: { value: any } }) => {
+      event.preventDefault();
+      setFormInfo({ ...formInfo, [prop]: event.target.value });
+    };
+
+  const handleSubmit = () => {
+    createPersistentVolume({
+      variables: {
+        persistentVolume: {
+          meta: {
+            name: formInfo.name,
+          },
+          capacity: formInfo.capacity,
+          volumeMode: formInfo.volumeMode,
+          accessMode: formInfo.accessMode,
+          reclaimPolicy: formInfo.reclaimPolicy,
+        },
+      },
+    })
+      .then(() => {
+        setOpen(false);
+        setFormInfo({
+          name: "",
+          capacity: "",
+          volumeMode: "Filesystem",
+          accessMode: ["ReadWriteOnce"],
+          reclaimPolicy: "Retain",
+        });
+      })
+      .catch((error) => {
+        alert(error.message);
+      });
+  };
+
+  return (
+    <>
+      <Button variant="contained" color="primary" onClick={handleClickOpen}>
+        New Persistent Volume
+      </Button>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="form-dialog-title"
+      >
+        <DialogTitle id="form-dialog-title">
+          New Persistent Volume Form
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please enter the following information to create a new persistent
+            volume.
+          </DialogContentText>
+          <TextInput
+            label="Volume Name"
+            id="name"
+            value={formInfo.name}
+            onChange={handleFormChange("name")}
+          />
+          <TextInput
+            label="Volume Capacity"
+            id="capacity"
+            value={formInfo.capacity}
+            onChange={handleFormChange("capacity")}
+          />
+          <FormControl component="fieldset">
+            <FormLabel component="legend">Reclaim Policy</FormLabel>
+            <RadioGroup
+              aria-label="reclaimPolicy"
+              name="reclaimPolicy"
+              value={formInfo.reclaimPolicy}
+              onChange={handleFormChange("reclaimPolicy")}
+            >
+              <FormControlLabel
+                value="Retain"
+                control={<Radio />}
+                label="Retain"
+              />
+              <FormControlLabel
+                value="Delete"
+                control={<Radio />}
+                label="Delete"
+              />
+            </RadioGroup>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} color="primary">
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+};
+
+export const PersistentVolumeDeleteDialog: FC<DialogProps> = ({ onClose }) => {
+  const [open, setOpen] = useState(false);
+  const [formInfo, setFormInfo] = useState({
+    name: "",
+  });
+
+  const [deletePersistentVolume] = useMutation<GQLMutation>(DELETE_PV_MUTATION);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    onClose();
+  };
+
+  const handleFormChange =
+    (prop: string) =>
+    (event: { preventDefault: () => void; target: { value: any } }) => {
+      event.preventDefault();
+      setFormInfo({ ...formInfo, [prop]: event.target.value });
+    };
+
+  const handleSubmit = () => {
+    deletePersistentVolume({
+      variables: {
+        name: formInfo.name,
+      },
+    })
+      .then(() => {
+        setOpen(false);
+        setFormInfo({
+          name: "",
+        });
+      })
+      .catch((error) => {
+        alert(error.message);
+      });
+  };
+
+  return (
+    <>
+      <Button variant="outlined" color="secondary" onClick={handleClickOpen}>
+        Delete Persistent Volume
+      </Button>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="form-dialog-title"
+      >
+        <DialogTitle id="form-dialog-title">
+          Delete Persistent Volume Form
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please enter the following information to delete a persistent
+            volume.
           </DialogContentText>
           <TextInput
             label="Name"

@@ -185,7 +185,7 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
   return (
     <>
       {query.loading && <LoadingDialog open={true} />}
-      <Container maxWidth="xs">
+      <Container maxWidth="xs" style={{ marginTop: "3em" }}>
         <Card className={classes.backgroundCard}>
           <CardContent className={classes.cardContentOverlay}>
             <Card className={classes.cardOverlayTransparent}>

@@ -33,10 +33,6 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-interface ThesesData {
-  allTheses: GQLThesis[];
-}
-
 export default function HomePage() {
   const classes = useStyles();
   const history = useHistory();
@@ -89,7 +85,7 @@ export default function HomePage() {
                   component={ThesisModal}
                   thesis={thesis}
                   xs={12}
-                  sm={3}
+                  md={3}
                 />
               ))}
             <></>

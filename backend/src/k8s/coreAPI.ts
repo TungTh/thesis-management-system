@@ -489,7 +489,6 @@ export const createPersistentVolume = async (pv: GQLPersistentVolumeInput): Prom
 	const pvObj = <k8s.V1PersistentVolume> {
 		metadata: {
 			name: pv.meta.name,
-			namespace: pv.meta.namespace.name,
 		},
 		spec: {
 			capacity: {

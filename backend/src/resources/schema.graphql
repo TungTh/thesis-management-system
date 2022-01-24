@@ -43,7 +43,7 @@ type Mutation {
 	deleteService(namespace: String!, name: String!): Boolean
 	deleteConfigMap(namespace: String!, name: String!): Boolean
 	deleteSecret(namespace: String!, name: String!): Boolean
-	deletePersistentVolume(namespace: String!, name: String!): Boolean
+	deletePersistentVolume(name: String!): Boolean
 	deletePersistentVolumeClaim(namespace: String!, name: String!): Boolean
 	deleteUser(id: String!): Boolean
 
