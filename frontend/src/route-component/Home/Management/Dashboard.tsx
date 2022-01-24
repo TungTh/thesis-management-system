@@ -29,11 +29,12 @@ const useStyles = makeStyles((theme: Theme) => ({
   appBarSpacer: theme.mixins.toolbar,
   box: {
     display: "flex",
+    width: "100%",
+    justifyContent: "space-between",
   },
   container: {
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
+    width: "100%",
+    padding: theme.spacing(2),
   },
 }));
 

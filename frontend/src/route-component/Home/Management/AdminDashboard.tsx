@@ -70,15 +70,15 @@ export default function AdminDashboard() {
   ];
 
   const userQuery = useQuery<GQLQuery>(ALL_USER_QUERY, {
-    pollInterval: 5000,
+    pollInterval: 30000,
   });
 
   const namespaceQuery = useQuery<GQLQuery>(ALL_NAMESPACES_QUERY, {
-    pollInterval: 5000,
+    pollInterval: 30000,
   });
 
   const pvQuery = useQuery<GQLQuery>(ALL_PV_QUERY, {
-    pollInterval: 5000,
+    pollInterval: 30000,
   });
 
   return (
@@ -317,12 +317,12 @@ export default function AdminDashboard() {
               <Box className={classes.box}>
                 <PersistentVolumeDeleteDialog
                   onClose={() => {
-                    setTimeout(namespaceQuery.refetch, 2000);
+                    setTimeout(pvQuery.refetch, 2000);
                   }}
                 />
                 <PersistentVolumeInputDialog
                   onClose={() => {
-                    setTimeout(namespaceQuery.refetch, 2000);
+                    setTimeout(pvQuery.refetch, 2000);
                   }}
                 />
               </Box>
