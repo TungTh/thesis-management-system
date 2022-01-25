@@ -5,7 +5,7 @@ import Select from "@material-ui/core/Select";
 
 interface InputProps {
   label: string;
-  value: string;
+  value?: string;
   id: string;
   size?: "small" | "medium";
   type?: string;
@@ -18,10 +18,12 @@ interface InputProps {
   onChange: (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
+  onEnter?: () => void;
   choices?: {
     key: string;
     value: string;
   }[];
+  props?: { [key: string]: any };
 }
 
 export const TextInput: FC<InputProps> = ({
@@ -30,9 +32,11 @@ export const TextInput: FC<InputProps> = ({
   id,
   value,
   onChange,
+  props,
 }) => {
   return (
     <TextField
+      {...props}
       required
       fullWidth
       autoFocus
@@ -53,6 +57,7 @@ export const PasswordInput: FC<InputProps> = ({
   id,
   value,
   onChange,
+  onEnter,
 }) => {
   return (
     <TextField
@@ -67,6 +72,12 @@ export const PasswordInput: FC<InputProps> = ({
       name={id}
       value={value}
       onChange={(event) => onChange(event)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          onEnter && onEnter();
+        }
+      }}
     />
   );
 };

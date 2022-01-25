@@ -53,8 +53,6 @@ export const AuthorizationContainer: FC<AuthorizationContainerProps> = ({
 
   if (!AuthContext.status) return <Redirect to="/" />;
 
-  console.log({ require: requireAdmin, user: AuthContext.user });
-
   if (requireAdmin && AuthContext.user.role.name !== "Admin")
     return <Redirect to="/" />;
 

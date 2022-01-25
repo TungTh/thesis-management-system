@@ -159,6 +159,7 @@ export default function LandingPage() {
                   id="password"
                   value={signInInfo.password}
                   onChange={handleSignInChange("password")}
+                  onEnter={handleSignInClick}
                 />
 
                 <ActionButton

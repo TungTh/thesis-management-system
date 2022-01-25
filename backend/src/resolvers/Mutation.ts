@@ -396,7 +396,8 @@ export const updateThesis = async (parent: GQLMutation, args: { id: string, thes
 		},
 		include: {
 			user: true,
-			namespace: true
+			namespace: true,
+			tags: true
 		}
 	});
 
@@ -742,7 +743,7 @@ async function userOwnNamespace(context:{ prisma: PrismaClient, userId:	string }
 		return true;
 	}
 
-	const thesis = await context.prisma.thesis.findUnique({
+	const thesis = await context.prisma.thesis.findFirst({
 		where: {
 			id: context.userId,
 			namespaceId: ns.id

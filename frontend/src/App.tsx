@@ -17,6 +17,7 @@ import {
 import { onError } from "@apollo/client/link/error";
 import HomePage from "./route-component/Home/HomePage";
 import SignOutPage from "./route-component/Authorization/SignOutPage";
+import AdminDashboard from "./route-component/Home/Management/AdminDashboard";
 
 // https://coolors.co/fcba04-ffebeb-590004
 const theme = createTheme({
@@ -107,7 +108,7 @@ export default function App() {
             setAuthorization: setAuthorizationData,
           }}
         >
-          <BrowserRouter basename="/ezk8s">
+          <BrowserRouter basename="/hcmiu-tms">
             <Switch>
               <Route exact path="/" component={LandingPage} />
               <Route exact path="/create-account" component={SignUpPage} />
@@ -117,6 +118,7 @@ export default function App() {
                 component={ForgotPasswordPage}
               />
               <Route path="/dashboard" component={Dashboard} />
+              <Route path="/adminDashboard" component={AdminDashboard} />
               <Route path="/home" component={HomePage} />
               <Route path="/signout" component={SignOutPage} />
             </Switch>

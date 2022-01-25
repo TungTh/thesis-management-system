@@ -8,17 +8,14 @@ import {
   Modal,
   Paper,
   Theme,
-  Typography,
 } from "@material-ui/core";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { FC, useState } from "react";
-import { GQLDeployment } from "../schemaTypes";
-import { BackgroundLetterAvatars } from "./Avatar";
-import { Tag } from "./Tag";
-import { TextContent, TitleText } from "./Text";
+import { GQLConfigMap } from "../schemaTypes";
+import { TextContent } from "./Text";
 
-interface DeploymentModalProps {
-  deployment: GQLDeployment;
+interface ConfigMapModalProps {
+  configMap: GQLConfigMap;
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -56,6 +53,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     margin: theme.spacing(2, 1, 2, 1),
     backgroundColor: theme.palette.background.default,
     width: "100%",
+    overflowX: "hidden",
   },
   backgroundCard: {
     position: "relative",
@@ -84,6 +82,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   cardContent: {
     padding: theme.spacing(0, 2, 0, 4),
     width: "100%",
+    overflowX: "hidden",
     "&:last-child": {
       paddingBottom: 0,
     },
@@ -102,7 +101,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-export const DeploymentModal: FC<DeploymentModalProps> = ({ deployment }) => {
+export const ConfigMapModal: FC<ConfigMapModalProps> = ({ configMap }) => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
@@ -146,26 +145,22 @@ export const DeploymentModal: FC<DeploymentModalProps> = ({ deployment }) => {
                 >
                   <Grid item component={Card} sm={3} className={classes.card}>
                     <CardContent className={classes.cardContent}>
-                      <TextContent label="Name" value={deployment.meta.name} />
+                      <TextContent label="Name" value={configMap.meta.name} />
                     </CardContent>
                   </Grid>
                   <Grid item component={Card} sm={3} className={classes.card}>
                     <CardContent className={classes.cardContent}>
                       <TextContent
                         label="Namespace"
-                        value={
-                          (deployment.meta.namespace &&
-                            deployment.meta.namespace.name) ||
-                          "N/A"
-                        }
+                        value={configMap.meta.namespace?.name || "N/A"}
                       />
                     </CardContent>
                   </Grid>
                   <Grid item component={Card} sm={3} className={classes.card}>
                     <CardContent className={classes.cardContent}>
                       <TextContent
-                        label="Number of containers"
-                        value={deployment.template.containers.length.toString()}
+                        label="No. of Key-Pair values"
+                        value={configMap.data?.length.toString() || "N/A"}
                       />
                     </CardContent>
                   </Grid>
@@ -182,8 +177,8 @@ export const DeploymentModal: FC<DeploymentModalProps> = ({ deployment }) => {
                   <Grid item component={Card} xs={12} className={classes.card}>
                     <CardContent>
                       <TextContent
-                        label="Deployment YAML"
-                        value={<code>{deployment.yaml}</code>}
+                        label="Secret YAML"
+                        value={<code>{configMap.yaml}</code>}
                       />
                     </CardContent>
                   </Grid>

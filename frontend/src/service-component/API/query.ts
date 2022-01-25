@@ -284,6 +284,14 @@ export const USER_BY_ID_QUERY = gql`
                         volumeName
                         volumeMode
                         accessMode
+                        resources {
+                            limits {
+                                storage
+                            }
+                            requests {
+                                storage
+                            }
+                        }
                     }
                 }
                 tags {
