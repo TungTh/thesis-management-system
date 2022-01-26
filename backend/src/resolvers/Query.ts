@@ -1,7 +1,10 @@
 import { PrismaClient } from "@prisma/client";
+import { exec } from 'child_process';
+import * as portfinder from 'portfinder';
 import * as appAPI from "../k8s/appAPI";
 import * as coreAPI from "../k8s/coreAPI";
 import { GQLConfigMap, GQLDeployment, GQLNamespace, GQLPersistentVolume, GQLPersistentVolumeClaim, GQLPod, GQLSecret, GQLService, GQLStatefulSet, GQLThesis, GQLUser } from "../schemaTypes";
+import { K8S_TIMEOUT } from "../util/UtilConstant";
 
 interface NamespacedObject {
 	namespace: string,
@@ -198,4 +201,46 @@ export const allPersistentVolumeClaims = async (parent, args: NamespacedObject, 
 	});
 
 	return persistentVolumeClaims;
+}
+
+export const getServiceDemo = async (parent, args: { namespace: string}, context, info): Promise<string> => {
+	const port = await portfinder.getPortPromise();
+
+	if (!port) {
+		throw new Error('Cannot find available port');
+	}
+
+	const ns = await coreAPI.getNamespaces();
+
+	if (!ns.find(n => n.name === args.namespace)) {
+		throw new Error('Namespace not found');
+	}
+
+	
+	const deployments = await appAPI.getDeploymentMetasInNamespace(args.namespace);
+	deployments.forEach(async (dplMeta) => {
+		await appAPI.scaleDeployment(args.namespace, dplMeta.name, 1);
+		setTimeout(appAPI.scaleDeployment, K8S_TIMEOUT, args.namespace, dplMeta.name, 0);
+	});
+
+	await new Promise(resolve => setTimeout(resolve, 5000)); // wait for pod to be ready
+
+	const services = await coreAPI.getServiceMetasInNamespace(args.namespace);
+	const service = (await Promise.all(services.map(async serviceMeta => {
+		return await coreAPI.getServiceInfo(args.namespace, serviceMeta.name);
+	}))).find(service => service.type === 'LoadBalancer');
+
+	const pf = exec(`dist\\scripts\\portForward.bat ${service.meta.name} ${port} ${service.ports[0].targetPort} ${args.namespace}`, 
+	(err, stdout, stderr) => {
+		if (err) {
+			console.error(err);
+			pf.kill();
+		}
+		console.log(stdout);
+		console.log(stderr);
+	});
+
+	setTimeout(pf.kill, K8S_TIMEOUT);
+
+	return `http://localhost:${port}`;
 }

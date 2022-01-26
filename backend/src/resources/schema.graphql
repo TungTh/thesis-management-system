@@ -15,7 +15,7 @@ type Query {
 	allPersistentVolumes: [PersistentVolume!]
 	allPersistentVolumeClaims(namespace: String!): [PersistentVolumeClaim!]
 
-	getServiceDemo(namespace: String!, name: String!):	String!
+	getServiceDemo(namespace: String!):	String!
 }
 
 type Mutation {

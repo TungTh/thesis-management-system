@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client";
+import { useLazyQuery, useQuery } from "@apollo/client";
 import {
   Box,
   Button,
@@ -14,7 +14,10 @@ import {
 } from "@material-ui/core";
 import { FC, useState } from "react";
 import { GQLQuery, GQLThesis } from "../schemaTypes";
-import { THESIS_BY_ID_QUERY } from "../service-component/API/query";
+import {
+  GET_SERVICE_DEMO_QUERY,
+  THESIS_BY_ID_QUERY,
+} from "../service-component/API/query";
 import { BackgroundLetterAvatars } from "./Avatar";
 import { LoadingDialog } from "./Dialog";
 import { Tag } from "./Tag";
@@ -118,6 +121,22 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
     variables: { id: thesis.id },
   });
 
+  const [serviceQuery, { loading, data }] = useLazyQuery<GQLQuery>(
+    GET_SERVICE_DEMO_QUERY
+  );
+
+  const viewDemo = () => {
+    serviceQuery({
+      variables: {
+        namespace: thesis.namespace.name,
+      },
+    });
+    while (loading) {
+      return <LoadingDialog open={true} />;
+    }
+    window.open(`${data?.getServiceDemo}`, "_blank");
+  };
+
   if (query.error || query.data === undefined) {
     console.log(query.error);
     return (
@@ -128,10 +147,7 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
   if (query.data.getThesisById === undefined) {
     return <div>Thesis not found!</div>;
   }
-
   thesis = query.data?.getThesisById;
-
-  console.log({ query });
 
   let memoryUsage = "0";
   let cpuUsage = "0";
@@ -184,7 +200,7 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
 
   return (
     <>
-      {query.loading && <LoadingDialog open={true} />}
+      {(query.loading || loading) && <LoadingDialog open={true} />}
       <Container maxWidth="xs" style={{ marginTop: "3em" }}>
         <Card className={classes.backgroundCard}>
           <CardContent className={classes.cardContentOverlay}>
@@ -275,6 +291,7 @@ export const ThesisModal: FC<ThesisModalProps> = ({ thesis }) => {
                     variant="contained"
                     color="primary"
                     className={classes.button}
+                    onClick={viewDemo}
                   >
                     {"👁 View Demo"}
                   </Button>

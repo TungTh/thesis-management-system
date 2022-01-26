@@ -328,3 +328,10 @@ query allNamespaces {
     }
 }
 `
+
+export const GET_SERVICE_DEMO_QUERY = gql`
+query getServiceDemo ($namespace: String!) {
+    getServiceDemo (namespace: $namespace) 
+}
+`
+    
